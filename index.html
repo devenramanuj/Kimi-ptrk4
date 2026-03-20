@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>બાળકોના નાસ્તાનું વ્યવસ્થાપન</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&display=swap');
+    
+    * { font-family: 'Noto Sans Gujarati', sans-serif; }
+    body { background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%); min-height: 100vh; }
+    .header-gradient { background: linear-gradient(90deg, #f97316 0%, #ea580c 50%, #d97706 100%); }
+    .tab-active-calendar { background: #f97316; color: white; }
+    .tab-active-menu { background: #22c55e; color: white; }
+    .tab-active-inventory { background: #3b82f6; color: white; }
+    .tab-active-reports { background: #a855f7; color: white; }
+    .calendar-day { min-height: 60px; transition: all 0.2s; }
+    .calendar-day:hover:not(.sunday):not(.disabled) { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .sunday { background: #fee2e2; border-color: #fca5a5; cursor: not-allowed; }
+    .has-data { background: #dcfce7; border-color: #4ade80; }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .page { display: none; }
+    .page.active { display: block; }
+    .footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(90deg, #1f2937 0%, #111827 50%, #1f2937 100%); z-index: 50; }
+    .consumption-positive { background: #dcfce7; color: #166534; }
+    .consumption-zero { background: #f3f4f6; color: #9ca3af; }
+    .sunday-cell { background: #fee2e2; color: #dc2626; }
+    @media print { .no-print { display: none !important; } .page { display: block !important; } body { background: white; } }
+    .inventory-card { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd; }
+
+    /* Report Table Column Colors */
+    .report-table th { color: white; font-size: 11px; padding: 8px 4px; }
+    .report-table td { font-size: 11px; padding: 6px 4px; border: 1px solid #e5e7eb; }
+    .total-row { background: #fef3c7 !important; font-weight: bold; }
+
+    /* Wheat Column Colors (Amber/Gold) */
+    .wheat-header { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%) !important; }
+    .wheat-sub { background: #fef3c7 !important; color: #92400e !important; }
+    .report-table td:nth-child(4), 
+    .report-table td:nth-child(5), 
+    .report-table td:nth-child(6), 
+    .report-table td:nth-child(7), 
+    .report-table td:nth-child(8) { background-color: #fffbeb; }
+
+    /* Rice Column Colors (Blue) */
+    .rice-header { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important; }
+    .rice-sub { background: #dbeafe !important; color: #1e40af !important; }
+    .report-table td:nth-child(9), 
+    .report-table td:nth-child(10), 
+    .report-table td:nth-child(11), 
+    .report-table td:nth-child(12), 
+    .report-table td:nth-child(13) { background-color: #eff6ff; }
+
+    /* Oil Column Colors (Yellow) */
+    .oil-header { background: linear-gradient(90deg, #eab308 0%, #ca8a04 100%) !important; }
+    .oil-sub { background: #fef9c3 !important; color: #854d0e !important; }
+    .report-table td:nth-child(14), 
+    .report-table td:nth-child(15), 
+    .report-table td:nth-child(16), 
+    .report-table td:nth-child(17), 
+    .report-table td:nth-child(18) { background-color: #fefce8; }
+
+    /* Chana Column Colors (Green) */
+    .chana-header { background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%) !important; }
+    .chana-sub { background: #dcfce7 !important; color: #166534 !important; }
+    .report-table td:nth-child(19), 
+    .report-table td:nth-child(20), 
+    .report-table td:nth-child(21), 
+    .report-table td:nth-child(22), 
+    .report-table td:nth-child(23) { background-color: #f0fdf4; }
+
+    /* Dal Column Colors (Orange) */
+    .dal-header { background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important; }
+    .dal-sub { background: #ffedd5 !important; color: #9a3412 !important; }
+    .report-table td:nth-child(24), 
+    .report-table td:nth-child(25), 
+    .report-table td:nth-child(26), 
+    .report-table td:nth-child(27), 
+    .report-table td:nth-child(28) { background-color: #fff7ed; }
+
+    /* First 3 columns styling */
+    .report-table th:first-child,
+    .report-table th:nth-child(2),
+    .report-table th:nth-child(3) { background: linear-gradient(90deg, #a855f7 0%, #ec4899 100%); }
+    .report-table td:first-child,
+    .report-table td:nth-child(2),
+    .report-table td:nth-child(3) { background-color: #faf5ff; font-weight: 600; }
+
+    .monthly-summary-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    .monthly-summary-table th { background: linear-gradient(90deg, #059669 0%, #10b981 100%); color: white; padding: 12px 8px; font-weight: 600; text-align: center; font-size: 0.9rem; }
+    .monthly-summary-table td { padding: 12px 8px; border-bottom: 1px solid #e5e7eb; text-align: center; font-size: 0.9rem; }
+    .monthly-summary-table tr:hover { background: #f0fdf4; }
+    .monthly-summary-table .item-name { text-align: left; font-weight: 600; color: #374151; }
+    .monthly-summary-table .total-usage { font-weight: bold; color: #059669; }
+    .monthly-summary-table .balance { font-weight: bold; }
+    .monthly-summary-table .balance.low { color: #dc2626; background: #fee2e2; }
+    .monthly-summary-table .balance.good { color: #059669; }
+    .monthly-summary-table tfoot { background: #ecfdf5; font-weight: bold; }
+    .monthly-summary-table tfoot td { border-top: 2px solid #059669; color: #065f46; }
+  </style>
+</head>
+<body class="pb-20">
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+
+</head>
+<body class="pb-20">
+
+  <!-- PASSWORD PROTECTION LAYER -->
+<div id="password-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 50%,#0ea5e9 100%);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans Gujarati',sans-serif;">
+  <div style="background:white;padding:2rem;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);max-width:400px;width:90%;text-align:center;animation:slideIn 0.5s ease;">
+    <div style="font-size:4rem;margin-bottom:1rem;">🔒</div>
+    <h2 style="color:#1e40af;font-size:1.5rem;font-weight:bold;margin-bottom:0.5rem;">પાસવર્ડ આવશ્યક</h2>
+    <p style="color:#64748b;margin-bottom:1.5rem;font-size:0.9rem;">આ એપ્લિકેશન એક્સેસ કરવા માટે પાસવર્ડ દાખલ કરો</p>
+    
+    <div style="position:relative;margin-bottom:1rem;">
+      <input type="password" id="password-input" placeholder="પાસવર્ડ દાખલ કરો" style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;text-align:center;outline:none;transition:all 0.3s;" onkeyup="if(event.key==='Enter')checkPassword()" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+    </div>
+    
+    <button onclick="checkPassword()" style="width:100%;padding:12px;background:linear-gradient(90deg,#2563eb 0%,#3b82f6 100%);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 20px -5px rgba(59,130,246,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+      એન્ટર કરો
+    </button>
+    
+    <div id="error-msg" style="color:#dc2626;margin-top:1rem;font-size:0.9rem;display:none;animation:shake 0.5s;">❌ ખોટો પાસવર્ડ! ફરીથી પ્રયાસ કરો.</div>
+    
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:2px dashed #e2e8f0;">
+      <p style="color:#475569;font-size:0.85rem;margin-bottom:0.5rem;">🔑 પાસવર્ડ માટે સંપર્ક કરો</p>
+      <p style="color:#1e40af;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem;">દેવેન્દ્ર રામાનુજ</p>
+      <a href="tel:9276505035" style="display:inline-flex;align-items:center;gap:8px;color:#059669;font-weight:600;text-decoration:none;font-size:1rem;padding:8px 16px;background:#d1fae5;border-radius:20px;transition:all 0.3s;" onmouseover="this.style.background='#a7f3d0'" onmouseout="this.style.background='#d1fae5'">
+        <span>📞</span> Mo. 9276505035
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+</style>
+
+<script>
+(function() {
+  const CORRECT_PASSWORD = "1234";
+  
+  window.checkPassword = function() {
+    const input = document.getElementById('password-input').value;
+    const errorMsg = document.getElementById('error-msg');
+    const overlay = document.getElementById('password-overlay');
+    
+    if (input === CORRECT_PASSWORD) {
+      overlay.style.animation = 'fadeOut 0.5s ease forwards';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }, 500);
+    } else {
+      errorMsg.style.display = 'block';
+      document.getElementById('password-input').value = '';
+      document.getElementById('password-input').focus();
+      setTimeout(() => {
+        errorMsg.style.display = 'none';
+      }, 3000);
+    }
+  };
+  
+  // Prevent right click and F12
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+      e.preventDefault();
+    }
+  });
+  
+  // Block body scroll until unlocked
+  document.body.style.overflow = 'hidden';
+})();
+</script>
+
+
+  <!-- Header -->
+  <header class="header-gradient text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+      <h1 class="text-xl md:text-3xl font-bold text-center">
+        <i class="fas fa-utensils mr-2"></i>બાળકોના નાસ્તાનું વ્યવસ્થાપન
+      </h1>
+      <p class="text-center text-orange-100 mt-1 text-sm">મિડ-ડે મીલ મેનેજમેન્ટ સિસ્ટમ</p>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="container mx-auto px-2 md:px-4 py-4">
+    <div class="grid grid-cols-4 gap-1 md:gap-2 bg-white rounded-xl shadow-md p-1">
+      <button onclick="showPage('calendar')" id="tab-calendar" class="tab-btn tab-active-calendar flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium">
+        <i class="fas fa-calendar-alt text-lg"></i>
+        <span class="hidden md:inline">કેલેન્ડર</span>
+        <span class="md:hidden">કેલે.</span>
+      </button>
+      <button onclick="showPage('menu')" id="tab-menu" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
+        <i class="fas fa-utensils text-lg"></i>
+        <span class="hidden md:inline">મેનુ</span>
+        <span class="md:hidden">મેનુ</span>
+      </button>
+      <button onclick="showPage('inventory')" id="tab-inventory" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
+        <i class="fas fa-box text-lg"></i>
+        <span class="hidden md:inline">સ્ટોક</span>
+        <span class="md:hidden">સ્ટોક</span>
+      </button>
+      <button onclick="showPage('reports')" id="tab-reports" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
+        <i class="fas fa-file-alt text-lg"></i>
+        <span class="hidden md:inline">રિપોર્ટ</span>
+        <span class="md:hidden">રિપો.</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-2 md:px-4">
+    
+    <!-- Page 1: Calendar -->
+    <div id="page-calendar" class="page active">
+      <div class="bg-white rounded-2xl shadow-xl border-2 border-orange-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-100 to-amber-100 p-4 md:p-6">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h2 class="text-lg md:text-2xl font-bold text-orange-800">
+              <i class="fas fa-calendar-alt mr-2"></i>ચાલુ માસનું કેલેન્ડર
+            </h2>
+            <div class="flex items-center gap-2">
+              <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-lg border-2 border-orange-300 hover:bg-orange-100 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div id="current-month-year" class="text-base md:text-xl font-bold text-orange-800 px-2 md:px-4 min-w-[120px] md:min-w-[180px] text-center"></div>
+              <button onclick="changeMonth(1)" class="w-10 h-10 rounded-lg border-2 border-orange-300 hover:bg-orange-100 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="p-3 md:p-6">
+          <div class="grid grid-cols-7 gap-1 md:gap-2 mb-2">
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-red-100 text-red-600 rounded">રવિ</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">સોમ</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">મંગળ</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">બુધ</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">ગુરુ</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">શુક્ર</div>
+            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">શનિ</div>
+          </div>
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
+          <div class="mt-4 md:mt-6 flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm">
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-red-100 border border-red-300 rounded"></div><span>રવિવાર - રજા</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-white border border-orange-200 rounded"></div><span>કોઈ ડેટા નથી</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-green-100 border border-green-400 rounded"></div><span>લાભાર્થી ઉમેર્યા</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 2: Menu -->
+    <div id="page-menu" class="page">
+      <div class="space-y-4 md:space-y-6">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-green-200 p-4 md:p-6">
+          <h2 class="text-xl md:text-2xl font-bold text-green-800"><i class="fas fa-utensils mr-2"></i>નાસ્તાનું મેનુ અને નિયમો</h2>
+          <p class="text-gray-700 mt-2">દરેક લાભાર્થી દીઠ નાસ્તાનો જથ્થો - અઠવાડિયાના વાર મુજબ</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-amber-100 to-yellow-100 p-4">
+            <h3 class="text-lg md:text-xl font-bold text-amber-800"><i class="fas fa-sun mr-2 text-amber-500"></i>સવારના નાસ્તાનું મેનુ</h3>
+          </div>
+          <div class="overflow-x-auto p-2 md:p-4">
+            <table class="w-full text-xs md:text-sm">
+              <thead><tr class="bg-amber-50"><th class="p-2 text-left font-bold text-amber-800">વસ્તુ</th><th class="p-2 text-center font-bold text-amber-800">સોમ</th><th class="p-2 text-center font-bold text-amber-800">મંગળ</th><th class="p-2 text-center font-bold text-amber-800">બુધ</th><th class="p-2 text-center font-bold text-amber-800">ગુરુ</th><th class="p-2 text-center font-bold text-amber-800">શુક્ર</th><th class="p-2 text-center font-bold text-amber-800">શનિ</th><th class="p-2 text-center font-bold text-red-500">રવિ</th></tr></thead>
+              <tbody id="morning-menu-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-orange-100 to-amber-100 p-4">
+            <h3 class="text-lg md:text-xl font-bold text-orange-800"><i class="fas fa-cloud-sun mr-2 text-orange-500"></i>બપોરના નાસ્તાનું મેનુ</h3>
+          </div>
+          <div class="overflow-x-auto p-2 md:p-4">
+            <table class="w-full text-xs md:text-sm">
+              <thead><tr class="bg-orange-50"><th class="p-2 text-left font-bold text-orange-800">વસ્તુ</th><th class="p-2 text-center font-bold text-orange-800">સોમ</th><th class="p-2 text-center font-bold text-orange-800">મંગળ</th><th class="p-2 text-center font-bold text-orange-800">બુધ</th><th class="p-2 text-center font-bold text-orange-800">ગુરુ</th><th class="p-2 text-center font-bold text-orange-800">શુક્ર</th><th class="p-2 text-center font-bold text-orange-800">શનિ</th><th class="p-2 text-center font-bold text-red-500">રવિ</th></tr></thead>
+              <tbody id="afternoon-menu-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-xl shadow-md border-2 border-green-200 p-4">
+            <h4 class="text-base md:text-lg font-bold text-green-800 mb-3">સવારના નાસ્તામાં</h4>
+            <div class="space-y-2 text-sm">
+              <p>🌾 ઘઉં: 30ગ્રામ (સોમ, બુધ, ગુરુ, શુક્ર, શનિ)</p>
+              <p>🍚 ચોખા: 30ગ્રામ (મંગળવાર)</p>
+              <p>🛢️ તેલ: 5ગ્રામ (સોમ થી શનિ)</p>
+              <p>🫘 ચણા: 20ગ્રામ (મંગળ, ગુરુ, શુક્ર)</p>
+              <p>🟡 દાળ: 20ગ્રામ (સોમ, બુધ)</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-md border-2 border-orange-200 p-4">
+            <h4 class="text-base md:text-lg font-bold text-orange-800 mb-3">બપોરના નાસ્તામાં</h4>
+            <div class="space-y-2 text-sm">
+              <p>🌾 ઘઉં: 50ગ્રામ (સોમ, મંગળ, શુક્ર)</p>
+              <p>🍚 ચોખા: 50ગ્રામ (બુધ, ગુરુ, શનિ)</p>
+              <p>🛢️ તેલ: 8ગ્રામ (સોમ થી શનિ)</p>
+              <p class="text-gray-400">🫘 ચણા: વપરાશ નથી</p>
+              <p class="text-gray-400">🟡 દાળ: વપરાશ નથી</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+          <p class="text-red-700 text-center font-medium"><i class="fas fa-info-circle mr-2"></i>નોંધ: રવિવારે રજા રાખવામાં આવે છે</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 3: Inventory -->
+    <div id="page-inventory" class="page">
+      <div class="space-y-4 md:space-y-6">
+        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-lg border-2 border-blue-200 p-4 md:p-6">
+          <h2 class="text-xl md:text-2xl font-bold text-blue-800"><i class="fas fa-box mr-2"></i>સ્ટોક વ્યવસ્થાપન</h2>
+          <p class="text-gray-700 mt-2">ખાદ્ય વસ્તુઓની ઊઘડતી સિલક અને આવકનું વ્યવસ્થાપન</p>
+        </div>
+        <div id="inventory-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden">
+          <div class="bg-gray-50 p-4"><h3 class="text-lg font-bold text-gray-800">સ્ટોક સારાંશ</h3></div>
+          <div class="overflow-x-auto p-4">
+            <table class="w-full">
+              <thead><tr class="bg-gray-100"><th class="text-left p-3 font-bold text-gray-700">વસ્તુ</th><th class="text-right p-3 font-bold text-gray-700">ઊઘડતી સિલક (ગ્રા)</th><th class="text-right p-3 font-bold text-gray-700">આવક (ગ્રા)</th><th class="text-right p-3 font-bold text-gray-700">કુલ જથ્થો (ગ્રા)</th></tr></thead>
+              <tbody id="inventory-summary-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 4: Reports -->
+    <div id="page-reports" class="page">
+      <div class="space-y-4 md:space-y-6">
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg border-2 border-purple-200 p-4 md:p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 class="text-xl md:text-2xl font-bold text-purple-800"><i class="fas fa-file-alt mr-2"></i>રિપોર્ટ્સ</h2>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="shareReport()" class="px-3 py-2 bg-white border-2 border-purple-300 rounded-lg hover:bg-purple-100 text-sm transition-colors"><i class="fas fa-share-alt mr-1"></i>શેર</button>
+              <button onclick="exportToCSV()" class="px-3 py-2 bg-white border-2 border-green-300 rounded-lg hover:bg-green-100 text-sm transition-colors"><i class="fas fa-file-excel mr-1"></i>Excel</button>
+              <button onclick="exportToPDF()" class="px-3 py-2 bg-white border-2 border-red-300 rounded-lg hover:bg-red-100 text-sm transition-colors"><i class="fas fa-file-pdf mr-1"></i>PDF</button>
+              <button onclick="window.print()" class="px-3 py-2 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-100 text-sm transition-colors"><i class="fas fa-print mr-1"></i>પ્રિન્ટ</button>
+            </div>
+          </div>
+          <p id="report-month-year" class="text-gray-700 mt-2"></p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-1">
+          <div class="grid grid-cols-2 gap-1">
+            <button onclick="showReportType('daily')" id="report-tab-daily" class="report-tab py-3 rounded-lg font-medium bg-purple-500 text-white"><i class="fas fa-calendar-day mr-2"></i>દૈનિક રિપોર્ટ</button>
+            <button onclick="showReportType('monthly')" id="report-tab-monthly" class="report-tab py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-chart-line mr-2"></i>માસિક સારાંશ</button>
+          </div>
+        </div>
+        <div id="report-daily" class="report-content">
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto p-2 md:p-4">
+              <div class="min-w-[1000px]">
+                <table class="report-table w-full">
+                  <thead>
+                    <tr>
+                      <th rowspan="2" class="text-left">તારીખ</th>
+                      <th rowspan="2">વાર</th>
+                      <th rowspan="2">લાભાર્થી</th>
+                      <th colspan="5" class="border-l wheat-header">ઘઉં</th>
+                      <th colspan="5" class="border-l rice-header">ચોખા</th>
+                      <th colspan="5" class="border-l oil-header">તેલ</th>
+                      <th colspan="5" class="border-l chana-header">ચણા</th>
+                      <th colspan="5" class="border-l dal-header">દાળ</th>
+                    </tr>
+                    <tr class="bg-purple-100 text-purple-800">
+                      <th class="border-l wheat-sub">ઊઘડતી</th><th class="wheat-sub">સવાર</th><th class="wheat-sub">બપોર</th><th class="wheat-sub">કુલ</th><th class="wheat-sub">બંધ</th>
+                      <th class="border-l rice-sub">ઊઘડતી</th><th class="rice-sub">સવાર</th><th class="rice-sub">બપોર</th><th class="rice-sub">કુલ</th><th class="rice-sub">બંધ</th>
+                      <th class="border-l oil-sub">ઊઘડતી</th><th class="oil-sub">સવાર</th><th class="oil-sub">બપોર</th><th class="oil-sub">કુલ</th><th class="oil-sub">બંધ</th>
+                      <th class="border-l chana-sub">ઊઘડતી</th><th class="chana-sub">સવાર</th><th class="chana-sub">બપોર</th><th class="chana-sub">કુલ</th><th class="chana-sub">બંધ</th>
+                      <th class="border-l dal-sub">ઊઘડતી</th><th class="dal-sub">સવાર</th><th class="dal-sub">બપોર</th><th class="dal-sub">કુલ</th><th class="dal-sub">બંધ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="daily-report-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="report-monthly" class="report-content hidden">
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-4">
+              <h3 class="text-lg font-bold text-green-800">માસિક વપરાસ સારાંશ</h3>
+            </div>
+            <div class="p-4 md:p-6">
+              <div class="mb-6 overflow-x-auto">
+                <h4 class="text-md font-bold text-gray-800 mb-3"><i class="fas fa-boxes mr-2 text-green-600"></i>ઇન્વેન્ટરી વાઈઝ માસિક સમરી</h4>
+                <table class="monthly-summary-table">
+                  <thead>
+                    <tr>
+                      <th>ઇન્વેન્ટરી</th>
+                      <th>સવારની વપરાશ</th>
+                      <th>બપોરની વપરાશ</th>
+                      <th>કુલ વપરાશ</th>
+                      <th>બાકી બચત</th>
+                    </tr>
+                  </thead>
+                  <tbody id="monthly-inventory-summary-body"></tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3">કુલ ખાદ્ય સામગ્રી</td>
+                      <td id="monthly-grand-total-consumption">0 કિ.ગ્રા</td>
+                      <td id="monthly-grand-total-balance">0 કિ.ગ્રા</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div id="monthly-summary-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+              <div class="mt-6 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                <h4 class="text-lg font-bold text-purple-800 mb-4">કુલ લાભાર્થી સંખ્યા</h4>
+                <div id="total-beneficiaries" class="text-4xl font-bold text-center text-purple-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-fixed text-white py-3">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-xs md:text-sm">
+        <div class="flex items-center gap-2"><i class="fas fa-code text-orange-400"></i><span class="font-medium">Developed by Devendra Ramanuj</span></div>
+        <div class="hidden md:block text-gray-500">|</div>
+        <div class="flex items-center gap-4">
+          <a href="tel:9276505035" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-phone text-xs"></i><span>9276505035</span></a>
+          <a href="tel:9274505035" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-phone text-xs"></i><span>9274505035</span></a>
+          <a href="mailto:devenramanuj@outlook.com" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-envelope text-xs"></i><span class="hidden sm:inline">devenramanuj@outlook.com</span></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modals -->
+  <div id="beneficiary-modal" class="modal">
+    <div class="modal-content">
+      <h3 class="text-xl font-bold text-orange-800 mb-4">લાભાર્થીની સંખ્યા દાખલ કરો</h3>
+      <div class="mb-4">
+        <p class="text-gray-600 mb-2">તારીખ: <span id="modal-date" class="font-bold text-orange-700"></span></p>
+        <label class="block text-sm font-medium text-gray-700 mb-2">લાભાર્થીની કુલ સંખ્યા</label>
+        <input type="number" id="beneficiary-input" class="w-full px-4 py-3 border-2 border-orange-200 rounded-lg text-lg focus:outline-none focus:border-orange-500" placeholder="ઉદા. 50" min="0">
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeModal()" class="flex-1 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">રદ કરો</button>
+        <button onclick="saveBeneficiary()" class="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">સાચવો</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventory-modal" class="modal">
+    <div class="modal-content">
+      <h3 class="text-xl font-bold text-blue-800 mb-4"><span id="inventory-item-name"></span> - સ્ટોક એડિટ કરો</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ઊઘડતી સિલક (ગ્રામમાં)</label>
+          <input type="number" id="opening-stock-input" class="w-full px-4 py-3 border-2 border-blue-200 rounded-lg text-lg focus:outline-none focus:border-blue-500" placeholder="ઉદા. 1000" min="0" step="0.01">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">આવક (ગ્રામમાં)</label>
+          <input type="number" id="income-input" class="w-full px-4 py-3 border-2 border-blue-200 rounded-lg text-lg focus:outline-none focus:border-blue-500" placeholder="ઉદા. 500" min="0" step="0.01">
+        </div>
+        <div class="bg-blue-50 p-3 rounded-lg">
+          <div class="text-sm text-gray-600">કુલ જથ્થો:</div>
+          <div id="total-stock-preview" class="text-2xl font-bold text-blue-700">0 ગ્રામ</div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="closeInventoryModal()" class="flex-1 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"><i class="fas fa-times mr-2"></i>રદ કરો</button>
+          <button onclick="saveInventory()" class="flex-1 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"><i class="fas fa-save mr-2"></i>સાચવો</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // DATA & CONFIGURATION
+    // ==========================================
+    
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    let selectedDate = null;
+    let editingInventoryItem = null;
+    
+    let inventory = {
+      wheat: { name: 'ઘઉં', opening: 17000, income: 0, unit: 'g', icon: '🌾' },
+      rice: { name: 'ચોખા', opening: 9000, income: 0, unit: 'g', icon: '🍚' },
+      oil: { name: 'તેલ', opening: 5000, income: 0, unit: 'g', icon: '🛢️' },
+      chana: { name: 'ચણા', opening: 6000, income: 0, unit: 'g', icon: '🫘' },
+      dal: { name: 'દાળ', opening: 4000, income: 0, unit: 'g', icon: '🟡' }
+    };
+    
+    let calendarData = {};
+    
+    const menuRules = {
+      morning: {
+        wheat: { days: [1, 3, 4, 5, 6], amount: 30 },
+        rice: { days: [2], amount: 30 },
+        oil: { days: [1, 2, 3, 4, 5, 6], amount: 5 },
+        chana: { days: [2, 4, 5], amount: 20 },
+        dal: { days: [1, 3], amount: 20 }
+      },
+      afternoon: {
+        wheat: { days: [1, 2, 5], amount: 50 },
+        rice: { days: [3, 4, 6], amount: 50 },
+        oil: { days: [1, 2, 3, 4, 5, 6], amount: 8 }
+      }
+    };
+    
+    // ==========================================
+    // LOCAL STORAGE FUNCTIONS
+    // ==========================================
+    
+    function saveToLocalStorage() {
+      localStorage.setItem('snack_inventory', JSON.stringify(inventory));
+      localStorage.setItem('snack_calendar_data', JSON.stringify(calendarData));
+      localStorage.setItem('snack_current_month', currentMonth);
+      localStorage.setItem('snack_current_year', currentYear);
+    }
+    
+    function loadFromLocalStorage() {
+      const savedInventory = localStorage.getItem('snack_inventory');
+      const savedCalendarData = localStorage.getItem('snack_calendar_data');
+      const savedMonth = localStorage.getItem('snack_current_month');
+      const savedYear = localStorage.getItem('snack_current_year');
+      
+      if (savedInventory) {
+        inventory = JSON.parse(savedInventory);
+      }
+      
+      if (savedCalendarData) {
+        calendarData = JSON.parse(savedCalendarData);
+      }
+      
+      if (savedMonth !== null && savedYear !== null) {
+        currentMonth = parseInt(savedMonth);
+        currentYear = parseInt(savedYear);
+      }
+    }
+    
+    // ==========================================
+    // UTILITY FUNCTIONS
+    // ==========================================
+    
+    function getMonthName(month) {
+      const names = ['જાન્યુઆરી','ફેબ્રુઆરી','માર્ચ','એપ્રિલ','મે','જૂન','જુલાઈ','ઓગસ્ટ','સપ્ટેમ્બર','ઓક્ટોબર','નવેમ્બર','ડિસેમ્બર'];
+      return names[month];
+    }
+    
+    function getDayName(day) {
+      const names = ['રવિ','સોમ','મંગળ','બુધ','ગુરુ','શુક્ર','શનિ'];
+      return names[day];
+    }
+    
+    function formatDate(date) {
+      return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
+    }
+    
+    function getKey(year, month, day) {
+      return `snack_${year}_${month}_${day}`;
+    }
+    
+    // ==========================================
+    // CALENDAR FUNCTIONS
+    // ==========================================
+    
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      const my = document.getElementById('current-month-year');
+      my.textContent = `${getMonthName(currentMonth)} ${currentYear}`;
+      
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      grid.innerHTML = '';
+      
+      for(let i = 0; i < firstDay; i++) {
+        grid.innerHTML += '<div class="calendar-day bg-gray-50 rounded-lg"></div>';
+      }
+      
+      for(let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dow = date.getDay();
+        const isSun = dow === 0;
+        const key = getKey(currentYear, currentMonth, day);
+        const data = calendarData[key];
+        
+        const cell = document.createElement('div');
+        cell.className = `calendar-day rounded-lg border-2 p-2 flex flex-col items-center justify-center min-h-[80px] ${isSun ? 'sunday' : 'bg-white border-orange-200 hover:border-orange-400 cursor-pointer'} ${data ? 'has-data' : ''}`;
+        
+        if(!isSun) cell.onclick = () => openModal(date);
+        
+        cell.innerHTML = `
+          <span class="text-lg font-bold ${isSun ? 'text-red-600' : 'text-gray-800'}">${day}</span>
+          ${data ? `<span class="text-xs text-green-700 mt-1">${data} બાળકો</span>` : ''}
+          ${isSun ? '<span class="text-xs text-red-500">રજા</span>' : ''}
+        `;
+        grid.appendChild(cell);
+      }
+    }
+    
+    function changeMonth(delta) {
+      currentMonth += delta;
+      if(currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      } else if(currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      saveToLocalStorage();
+      renderCalendar();
+      renderDailyReport();
+      renderMonthlySummary();
+    }
+    
+    // ==========================================
+    // MODAL FUNCTIONS
+    // ==========================================
+    
+    function openModal(date) {
+      selectedDate = date;
+      document.getElementById('modal-date').textContent = formatDate(date);
+      document.getElementById('beneficiary-input').value = calendarData[getKey(date.getFullYear(), date.getMonth(), date.getDate())] || '';
+      document.getElementById('beneficiary-modal').classList.add('show');
+    }
+    
+    function closeModal() {
+      document.getElementById('beneficiary-modal').classList.remove('show');
+      selectedDate = null;
+    }
+    
+    function saveBeneficiary() {
+      const count = parseInt(document.getElementById('beneficiary-input').value) || 0;
+      if(selectedDate) {
+        const key = getKey(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        if(count > 0) {
+          calendarData[key] = count;
+        } else {
+          delete calendarData[key];
+        }
+        saveToLocalStorage();
+        renderCalendar();
+        renderDailyReport();
+        renderMonthlySummary();
+      }
+      closeModal();
+    }
+    
+    // ==========================================
+    // INVENTORY FUNCTIONS
+    // ==========================================
+    
+    function renderInventory() {
+      const cards = document.getElementById('inventory-cards');
+      const table = document.getElementById('inventory-summary-table');
+      cards.innerHTML = '';
+      table.innerHTML = '';
+      
+      Object.keys(inventory).forEach(key => {
+        const item = inventory[key];
+        const total = item.opening + item.income;
+        
+        cards.innerHTML += `
+          <div class="inventory-card rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow" onclick="openInventoryModal('${key}')">
+            <div class="flex justify-between mb-3">
+              <span class="text-3xl">${item.icon}</span>
+              <i class="fas fa-edit text-blue-500"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">${item.name}</h3>
+            <div class="mt-2 space-y-1 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">ઊઘડતી:</span>
+                <span>${item.opening} ${item.unit}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">આવક:</span>
+                <span class="text-green-600">+${item.income} ${item.unit}</span>
+              </div>
+              <div class="flex justify-between border-t pt-2 mt-2">
+                <span class="font-bold">કુલ:</span>
+                <span class="font-bold text-blue-700">${total} ${item.unit}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        table.innerHTML += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <td class="p-3 font-medium">${item.icon} ${item.name}</td>
+            <td class="p-3 text-right">${item.opening}</td>
+            <td class="p-3 text-right text-green-600">${item.income}</td>
+            <td class="p-3 text-right font-bold text-blue-700">${total}</td>
+          </tr>
+        `;
+      });
+    }
+    
+    function openInventoryModal(key) {
+      editingInventoryItem = key;
+      const item = inventory[key];
+      document.getElementById('inventory-item-name').textContent = item.name;
+      document.getElementById('opening-stock-input').value = item.opening;
+      document.getElementById('income-input').value = item.income;
+      updateStockPreview();
+      document.getElementById('inventory-modal').classList.add('show');
+    }
+    
+    function closeInventoryModal() {
+      document.getElementById('inventory-modal').classList.remove('show');
+      editingInventoryItem = null;
+    }
+    
+    function updateStockPreview() {
+      const opening = parseFloat(document.getElementById('opening-stock-input').value) || 0;
+      const income = parseFloat(document.getElementById('income-input').value) || 0;
+      document.getElementById('total-stock-preview').textContent = `${opening + income} ગ્રામ`;
+    }
+    
+    function saveInventory() {
+      if(editingInventoryItem) {
+        inventory[editingInventoryItem].opening = parseFloat(document.getElementById('opening-stock-input').value) || 0;
+        inventory[editingInventoryItem].income = parseFloat(document.getElementById('income-input').value) || 0;
+        saveToLocalStorage();
+        renderInventory();
+        renderDailyReport();
+        renderMonthlySummary();
+      }
+      closeInventoryModal();
+    }
+    
+    // ==========================================
+    // MENU FUNCTIONS
+    // ==========================================
+    
+    function renderMenu() {
+      const morningBody = document.getElementById('morning-menu-table');
+      const afternoonBody = document.getElementById('afternoon-menu-table');
+      
+      const items = [
+        {key: 'wheat', name: '🌾 ઘઉં', color: 'text-amber-700'},
+        {key: 'rice', name: '🍚 ચોખા', color: 'text-blue-700'},
+        {key: 'oil', name: '🛢️ તેલ', color: 'text-yellow-700'},
+        {key: 'chana', name: '🫘 ચણા', color: 'text-green-700'},
+        {key: 'dal', name: '🟡 દાળ', color: 'text-orange-700'}
+      ];
+      
+      morningBody.innerHTML = items.map(item => {
+        const rule = menuRules.morning[item.key];
+        if(!rule) return '';
+        return `
+          <tr class="border-b border-amber-100 hover:bg-amber-50">
+            <td class="p-2 font-medium ${item.color}">${item.name}</td>
+            ${[1,2,3,4,5,6,0].map(d => `
+              <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : ''}">
+                ${rule.days.includes(d) ? `<span class="font-bold text-amber-700">${rule.amount}g</span>` : '<span class="text-gray-300">-</span>'}
+              </td>
+            `).join('')}
+          </tr>
+        `;
+      }).join('');
+      
+      afternoonBody.innerHTML = items.map(item => {
+        const rule = menuRules.afternoon[item.key];
+        if(!rule) {
+          return `
+            <tr class="border-b border-orange-100 hover:bg-orange-50">
+              <td class="p-2 font-medium ${item.color}">${item.name}</td>
+              ${[1,2,3,4,5,6,0].map(d => `
+                <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : 'text-gray-300'}">-</td>
+              `).join('')}
+            </tr>
+          `;
+        }
+        return `
+          <tr class="border-b border-orange-100 hover:bg-orange-50">
+            <td class="p-2 font-medium ${item.color}">${item.name}</td>
+            ${[1,2,3,4,5,6,0].map(d => `
+              <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : ''}">
+                ${rule.days.includes(d) ? `<span class="font-bold text-orange-700">${rule.amount}g</span>` : '<span class="text-gray-300">-</span>'}
+              </td>
+            `).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // ==========================================
+    // DAILY REPORT WITH TOTALS
+    // ==========================================
+    
+    function renderDailyReport() {
+      const tbody = document.getElementById('daily-report-table');
+      tbody.innerHTML = '';
+      
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      // Monthly totals
+      const mt = {
+        beneficiaries: 0,
+        wheat: {morning: 0, afternoon: 0, total: 0},
+        rice: {morning: 0, afternoon: 0, total: 0},
+        oil: {morning: 0, afternoon: 0, total: 0},
+        chana: {morning: 0, afternoon: 0, total: 0},
+        dal: {morning: 0, afternoon: 0, total: 0}
+      };
+      
+      let rb = {
+        wheat: inventory.wheat.opening + inventory.wheat.income,
+        rice: inventory.rice.opening + inventory.rice.income,
+        oil: inventory.oil.opening + inventory.oil.income,
+        chana: inventory.chana.opening + inventory.chana.income,
+        dal: inventory.dal.opening + inventory.dal.income
+      };
+      
+      for(let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dow = date.getDay();
+        const isSun = dow === 0;
+        const key = getKey(currentYear, currentMonth, day);
+        const ben = calendarData[key] || 0;
+        
+        const row = document.createElement('tr');
+        row.className = isSun ? 'sunday-cell' : (ben > 0 ? 'consumption-positive' : 'consumption-zero');
+        
+        const c = {
+          wheat: {m: 0, a: 0},
+          rice: {m: 0, a: 0},
+          oil: {m: 0, a: 0},
+          chana: {m: 0, a: 0},
+          dal: {m: 0, a: 0}
+        };
+        
+        if(!isSun && ben > 0) {
+          // Morning
+          if(menuRules.morning.wheat.days.includes(dow)) c.wheat.m = menuRules.morning.wheat.amount * ben;
+          if(menuRules.morning.rice.days.includes(dow)) c.rice.m = menuRules.morning.rice.amount * ben;
+          if(menuRules.morning.oil.days.includes(dow)) c.oil.m = menuRules.morning.oil.amount * ben;
+          if(menuRules.morning.chana.days.includes(dow)) c.chana.m = menuRules.morning.chana.amount * ben;
+          if(menuRules.morning.dal.days.includes(dow)) c.dal.m = menuRules.morning.dal.amount * ben;
+          
+          // Afternoon
+          if(menuRules.afternoon.wheat.days.includes(dow)) c.wheat.a = menuRules.afternoon.wheat.amount * ben;
+          if(menuRules.afternoon.rice.days.includes(dow)) c.rice.a = menuRules.afternoon.rice.amount * ben;
+          if(menuRules.afternoon.oil.days.includes(dow)) c.oil.a = menuRules.afternoon.oil.amount * ben;
+          
+          // Add to totals
+          mt.beneficiaries += ben;
+          mt.wheat.morning += c.wheat.m;
+          mt.wheat.afternoon += c.wheat.a;
+          mt.wheat.total += (c.wheat.m + c.wheat.a);
+          mt.rice.morning += c.rice.m;
+          mt.rice.afternoon += c.rice.a;
+          mt.rice.total += (c.rice.m + c.rice.a);
+          mt.oil.morning += c.oil.m;
+          mt.oil.afternoon += c.oil.a;
+          mt.oil.total += (c.oil.m + c.oil.a);
+          mt.chana.morning += c.chana.m;
+          mt.chana.total += c.chana.m;
+          mt.dal.morning += c.dal.m;
+          mt.dal.total += c.dal.m;
+        }
+        
+        if(!isSun && ben > 0) {
+          rb.wheat -= (c.wheat.m + c.wheat.a);
+          rb.rice -= (c.rice.m + c.rice.a);
+          rb.oil -= (c.oil.m + c.oil.a);
+          rb.chana -= c.chana.m;
+          rb.dal -= c.dal.m;
+        }
+        
+        row.innerHTML = `
+          <td class="border p-1 whitespace-nowrap">${formatDate(date)}</td>
+          <td class="border p-1 text-center">${getDayName(dow)}</td>
+          <td class="border p-1 text-center font-bold">${ben || '-'}</td>
+          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.wheat + c.wheat.m + c.wheat.a)}</td>
+          <td class="border p-1 text-right">${c.wheat.m || '-'}</td>
+          <td class="border p-1 text-right">${c.wheat.a || '-'}</td>
+          <td class="border p-1 text-right font-bold">${(c.wheat.m + c.wheat.a) || '-'}</td>
+          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.wheat)}</td>
+          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.rice + c.rice.m + c.rice.a)}</td>
+          <td class="border p-1 text-right">${c.rice.m || '-'}</td>
+          <td class="border p-1 text-right">${c.rice.a || '-'}</td>
+          <td class="border p-1 text-right font-bold">${(c.rice.m + c.rice.a) || '-'}</td>
+          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.rice)}</td>
+          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.oil + c.oil.m + c.oil.a)}</td>
+          <td class="border p-1 text-right">${c.oil.m || '-'}</td>
+          <td class="border p-1 text-right">${c.oil.a || '-'}</td>
+          <td class="border p-1 text-right font-bold">${(c.oil.m + c.oil.a) || '-'}</td>
+          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.oil)}</td>
+          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.chana + c.chana.m)}</td>
+          <td class="border p-1 text-right">${c.chana.m || '-'}</td>
+          <td class="border p-1 text-right">${c.chana.a || '-'}</td>
+          <td class="border p-1 text-right font-bold">${c.chana.m || '-'}</td>
+          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.chana)}</td>
+          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.dal + c.dal.m)}</td>
+          <td class="border p-1 text-right">${c.dal.m || '-'}</td>
+          <td class="border p-1 text-right">${c.dal.a || '-'}</td>
+          <td class="border p-1 text-right font-bold">${c.dal.m || '-'}</td>
+          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.dal)}</td>
+        `;
+        tbody.appendChild(row);
+      }
+      
+      // TOTAL ROW
+      const totalRow = document.createElement('tr');
+      totalRow.className = 'total-row';
+      totalRow.style.cssText = 'background:#fef3c7;font-weight:bold;border-top:3px solid #f59e0b;';
+      totalRow.innerHTML = `
+        <td class="border p-2" colspan="2"><strong>🧮 કુલ ટોટલ</strong></td>
+        <td class="border p-2 text-center"><strong>${mt.beneficiaries.toLocaleString()}</strong></td>
+        <td class="border-l border p-2">-</td>
+        <td class="border p-2 text-right"><strong>${mt.wheat.morning.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right"><strong>${mt.wheat.afternoon.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.wheat.total.toLocaleString()}</strong></td>
+        <td class="border p-2">-</td>
+        <td class="border-l border p-2">-</td>
+        <td class="border p-2 text-right"><strong>${mt.rice.morning.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right"><strong>${mt.rice.afternoon.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.rice.total.toLocaleString()}</strong></td>
+        <td class="border p-2">-</td>
+        <td class="border-l border p-2">-</td>
+        <td class="border p-2 text-right"><strong>${mt.oil.morning.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right"><strong>${mt.oil.afternoon.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.oil.total.toLocaleString()}</strong></td>
+        <td class="border p-2">-</td>
+        <td class="border-l border p-2">-</td>
+        <td class="border p-2 text-right"><strong>${mt.chana.morning.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right"><strong>${mt.chana.afternoon.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.chana.total.toLocaleString()}</strong></td>
+        <td class="border p-2">-</td>
+        <td class="border-l border p-2">-</td>
+        <td class="border p-2 text-right"><strong>${mt.dal.morning.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right"><strong>${mt.dal.afternoon.toLocaleString()}</strong></td>
+        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.dal.total.toLocaleString()}</strong></td>
+        <td class="border p-2">-</td>
+      `;
+      tbody.appendChild(totalRow);
+    }
+    
+    // ==========================================
+    // MONTHLY SUMMARY
+    // ==========================================
+    
+    function renderMonthlySummary() {
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      const summary = {
+        wheat: {morning: 0, afternoon: 0, opening: inventory.wheat.opening + inventory.wheat.income},
+        rice: {morning: 0, afternoon: 0, opening: inventory.rice.opening + inventory.rice.income},
+        oil: {morning: 0, afternoon: 0, opening: inventory.oil.opening + inventory.oil.income},
+        chana: {morning: 0, afternoon: 0, opening: inventory.chana.opening + inventory.chana.income},
+        dal: {morning: 0, afternoon: 0, opening: inventory.dal.opening + inventory.dal.income}
+      };
+      
+      let totalBeneficiaries = 0;
+      let workingDays = 0;
+      
+      for(let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dow = date.getDay();
+        const isSun = dow === 0;
+        const key = getKey(currentYear, currentMonth, day);
+        const ben = calendarData[key] || 0;
+        
+        if(!isSun && ben > 0) {
+          workingDays++;
+          totalBeneficiaries += ben;
+          
+          if(menuRules.morning.wheat.days.includes(dow)) summary.wheat.morning += menuRules.morning.wheat.amount * ben;
+          if(menuRules.morning.rice.days.includes(dow)) summary.rice.morning += menuRules.morning.rice.amount * ben;
+          if(menuRules.morning.oil.days.includes(dow)) summary.oil.morning += menuRules.morning.oil.amount * ben;
+          if(menuRules.morning.chana.days.includes(dow)) summary.chana.morning += menuRules.morning.chana.amount * ben;
+          if(menuRules.morning.dal.days.includes(dow)) summary.dal.morning += menuRules.morning.dal.amount * ben;
+          
+          if(menuRules.afternoon.wheat.days.includes(dow)) summary.wheat.afternoon += menuRules.afternoon.wheat.amount * ben;
+          if(menuRules.afternoon.rice.days.includes(dow)) summary.rice.afternoon += menuRules.afternoon.rice.amount * ben;
+          if(menuRules.afternoon.oil.days.includes(dow)) summary.oil.afternoon += menuRules.afternoon.oil.amount * ben;
+        }
+      }
+      
+      const items = [
+        {key: 'wheat', name: '🌾 ઘઉં'},
+        {key: 'rice', name: '🍚 ચોખા'},
+        {key: 'oil', name: '🛢️ તેલ'},
+        {key: 'chana', name: '🫘 ચણા'},
+        {key: 'dal', name: '🟡 દાળ'}
+      ];
+      
+      let grandTotalConsumption = 0;
+      let grandTotalBalance = 0;
+      
+      document.getElementById('monthly-inventory-summary-body').innerHTML = items.map(item => {
+        const totalConsumption = summary[item.key].morning + summary[item.key].afternoon;
+        const balance = summary[item.key].opening - totalConsumption;
+        grandTotalConsumption += totalConsumption;
+        grandTotalBalance += balance;
+        
+        return `
+          <tr>
+            <td class="item-name">${item.name}</td>
+            <td>${summary[item.key].morning.toLocaleString()} ગ્રા</td>
+            <td>${summary[item.key].afternoon.toLocaleString()} ગ્રા</td>
+            <td class="total-usage">${(totalConsumption/1000).toFixed(2)} કિ.ગ્રા</td>
+            <td class="balance ${balance < 1000 ? 'low' : 'good'}">${(balance/1000).toFixed(2)} કિ.ગ્રા</td>
+          </tr>
+        `;
+      }).join('');
+      
+      document.getElementById('monthly-grand-total-consumption').textContent = `${(grandTotalConsumption/1000).toFixed(2)} કિ.ગ્રા`;
+      document.getElementById('monthly-grand-total-balance').textContent = `${(grandTotalBalance/1000).toFixed(2)} કિ.ગ્રા`;
+      
+      document.getElementById('monthly-summary-cards').innerHTML = `
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+          <h4 class="text-blue-800 font-bold mb-2">કાર્યકારી દિવસો</h4>
+          <p class="text-3xl font-bold text-blue-700">${workingDays}</p>
+          <p class="text-sm text-blue-600">રવિવાર સિવાય</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+          <h4 class="text-green-800 font-bold mb-2">કુલ લાભાર્થી-દિવસ</h4>
+          <p class="text-3xl font-bold text-green-700">${totalBeneficiaries.toLocaleString()}</p>
+          <p class="text-sm text-green-600">બાળકો × દિવસો</p>
+        </div>
+      `;
+      
+      document.getElementById('total-beneficiaries').textContent = `${Math.round(totalBeneficiaries / (workingDays || 1))} સરેરાશ બાળકો/દિવસ`;
+      document.getElementById('report-month-year').textContent = `${getMonthName(currentMonth)} ${currentYear} માસનો રિપોર્ટ`;
+    }
+    
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+    
+    function showPage(pageName) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(`page-${pageName}`).classList.add('active');
+      
+      document.querySelectorAll('.tab-btn').forEach(t => {
+        t.className = 'tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100';
+      });
+      document.getElementById(`tab-${pageName}`).className = `tab-btn tab-active-${pageName} flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium`;
+      
+      if(pageName === 'inventory') renderInventory();
+      if(pageName === 'reports') {
+        renderDailyReport();
+        renderMonthlySummary();
+      }
+      if(pageName === 'menu') renderMenu();
+    }
+    
+    function showReportType(type) {
+      document.querySelectorAll('.report-content').forEach(r => r.classList.add('hidden'));
+      document.getElementById(`report-${type}`).classList.remove('hidden');
+      
+      document.querySelectorAll('.report-tab').forEach(t => {
+        t.className = 'report-tab py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100';
+      });
+      document.getElementById(`report-tab-${type}`).className = 'report-tab py-3 rounded-lg font-medium bg-purple-500 text-white';
+      
+      if(type === 'monthly') renderMonthlySummary();
+    }
+    
+        // ==========================================
+    // EXPORTS
+    // ==========================================
+    
+    function shareReport() {
+      const text = `બાળકોના નાસ્તાનું વ્યવસ્થાપન - ${getMonthName(currentMonth)} ${currentYear}\nવિગતવાર રિપોર્ટ જુઓ.`;
+      if(navigator.share) {
+        navigator.share({title: 'નાસ્તાનું વ્યવસ્થાપન રિપોર્ટ', text: text});
+      } else {
+        alert('WhatsApp ખોલો:\n\n' + text);
+      }
+    }
+    
+    function exportToCSV() {
+      let csv = 'તારીખ,વાર,લાભાર્થી,ઘઉં-સવાર,ઘઉં-બપોર,ચોખા-સવાર,ચોખા-બપોર,તેલ-સવાર,તેલ-બપોર,ચણા-સવાર,દાળ-સવાર\n';
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      for(let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dow = date.getDay();
+        const key = getKey(currentYear, currentMonth, day);
+        const ben = calendarData[key] || 0;
+        
+        let row = `${formatDate(date)},${getDayName(dow)},${ben}`;
+        if(!ben || dow === 0) {
+          row += ',0,0,0,0,0,0,0,0';
+        } else {
+          const wm = menuRules.morning.wheat.days.includes(dow) ? menuRules.morning.wheat.amount * ben : 0;
+          const wa = menuRules.afternoon.wheat.days.includes(dow) ? menuRules.afternoon.wheat.amount * ben : 0;
+          const rm = menuRules.morning.rice.days.includes(dow) ? menuRules.morning.rice.amount * ben : 0;
+          const ra = menuRules.afternoon.rice.days.includes(dow) ? menuRules.afternoon.rice.amount * ben : 0;
+          const om = menuRules.morning.oil.days.includes(dow) ? menuRules.morning.oil.amount * ben : 0;
+          const oa = menuRules.afternoon.oil.days.includes(dow) ? menuRules.afternoon.oil.amount * ben : 0;
+          const cm = menuRules.morning.chana.days.includes(dow) ? menuRules.morning.chana.amount * ben : 0;
+          const dm = menuRules.morning.dal.days.includes(dow) ? menuRules.morning.dal.amount * ben : 0;
+          row += `,${wm},${wa},${rm},${ra},${om},${oa},${cm},${dm}`;
+        }
+        csv += row + '\n';
+      }
+      
+      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `નાસ્તા_રિપોર્ટ_${currentYear}_${currentMonth+1}.csv`;
+      link.click();
+    }
+    
+    function exportToPDF() {
+      window.print();
+    }
+    
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load saved data from localStorage
+      loadFromLocalStorage();
+      
+      // Add event listeners for stock preview
+      document.getElementById('opening-stock-input').addEventListener('input', updateStockPreview);
+      document.getElementById('income-input').addEventListener('input', updateStockPreview);
+      
+      // Initial render
+      renderCalendar();
+      renderMenu();
+      renderInventory();
+      renderDailyReport();
+      renderMonthlySummary();
+    });
+  </script>
+</body>
+</html>
