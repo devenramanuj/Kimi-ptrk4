@@ -1,1155 +1,1934 @@
 <!DOCTYPE html>
 <html lang="gu">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>બાળકોના નાસ્તાનું વ્યવસ્થાપન</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Daily Report - ખાદ્ય સ્ટોક મેનેજમેન્ટ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --primary: #1a237e;
+    --primary-light: #3949ab;
+    --secondary: #e65100;
+    --accent: #f57c00;
+    --success: #2e7d32;
+    --danger: #c62828;
+    --warning: #f9a825;
+    --info: #01579b;
+    --bg: #f0f4ff;
+    --card-bg: #ffffff;
+    --text: #1a237e;
+    --text-light: #546e7a;
+    --border: #c5cae9;
+    --shadow: 0 4px 20px rgba(26,35,126,0.12);
+    --radius: 16px;
+    --gradient1: linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #5c6bc0 100%);
+    --gradient2: linear-gradient(135deg, #e65100 0%, #f57c00 100%);
+    --gradient3: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
     
-    * { font-family: 'Noto Sans Gujarati', sans-serif; }
-    body { background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%); min-height: 100vh; }
-    .header-gradient { background: linear-gradient(90deg, #f97316 0%, #ea580c 50%, #d97706 100%); }
-    .tab-active-calendar { background: #f97316; color: white; }
-    .tab-active-menu { background: #22c55e; color: white; }
-    .tab-active-inventory { background: #3b82f6; color: white; }
-    .tab-active-reports { background: #a855f7; color: white; }
-    .calendar-day { min-height: 60px; transition: all 0.2s; }
-    .calendar-day:hover:not(.sunday):not(.disabled) { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .sunday { background: #fee2e2; border-color: #fca5a5; cursor: not-allowed; }
-    .has-data { background: #dcfce7; border-color: #4ade80; }
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
-    .modal.show { display: flex; }
-    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; animation: slideUp 0.3s ease; }
-    @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .page { display: none; }
-    .page.active { display: block; }
-    .footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(90deg, #1f2937 0%, #111827 50%, #1f2937 100%); z-index: 50; }
-    .consumption-positive { background: #dcfce7; color: #166534; }
-    .consumption-zero { background: #f3f4f6; color: #9ca3af; }
-    .sunday-cell { background: #fee2e2; color: #dc2626; }
-    @media print { .no-print { display: none !important; } .page { display: block !important; } body { background: white; } }
-    .inventory-card { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd; }
+    /* Column Background Colors */
+    --bg-wheat: #fff8e1;
+    --bg-rice: #e1f5fe;
+    --bg-oil: #f3e5f5;
+    --bg-chana: #e8f5e9;
+    --bg-dal: #ffebee;
+    --bg-chanadal: #e0f2f1;
+  }
 
-    /* Report Table Column Colors */
-    .report-table th { color: white; font-size: 11px; padding: 8px 4px; }
-    .report-table td { font-size: 11px; padding: 6px 4px; border: 1px solid #e5e7eb; }
-    .total-row { background: #fef3c7 !important; font-weight: bold; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* Wheat Column Colors (Amber/Gold) */
-    .wheat-header { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%) !important; }
-    .wheat-sub { background: #fef3c7 !important; color: #92400e !important; }
-    .report-table td:nth-child(4), 
-    .report-table td:nth-child(5), 
-    .report-table td:nth-child(6), 
-    .report-table td:nth-child(7), 
-    .report-table td:nth-child(8) { background-color: #fffbeb; }
+  body {
+    font-family: 'Noto Sans Gujarati', 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-    /* Rice Column Colors (Blue) */
-    .rice-header { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important; }
-    .rice-sub { background: #dbeafe !important; color: #1e40af !important; }
-    .report-table td:nth-child(9), 
-    .report-table td:nth-child(10), 
-    .report-table td:nth-child(11), 
-    .report-table td:nth-child(12), 
-    .report-table td:nth-child(13) { background-color: #eff6ff; }
+  /* ===== LOGIN OVERLAY ===== */
+  #loginOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--gradient1);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: opacity 0.5s ease;
+  }
 
-    /* Oil Column Colors (Yellow) */
-    .oil-header { background: linear-gradient(90deg, #eab308 0%, #ca8a04 100%) !important; }
-    .oil-sub { background: #fef9c3 !important; color: #854d0e !important; }
-    .report-table td:nth-child(14), 
-    .report-table td:nth-child(15), 
-    .report-table td:nth-child(16), 
-    .report-table td:nth-child(17), 
-    .report-table td:nth-child(18) { background-color: #fefce8; }
+  .login-card {
+    background: white;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    text-align: center;
+    animation: slideUp 0.4s ease-out;
+  }
 
-    /* Chana Column Colors (Green) */
-    .chana-header { background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%) !important; }
-    .chana-sub { background: #dcfce7 !important; color: #166534 !important; }
-    .report-table td:nth-child(19), 
-    .report-table td:nth-child(20), 
-    .report-table td:nth-child(21), 
-    .report-table td:nth-child(22), 
-    .report-table td:nth-child(23) { background-color: #f0fdf4; }
+  .login-logo {
+    width: 70px;
+    height: 70px;
+    background: var(--gradient1);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    box-shadow: 0 8px 20px rgba(26,35,126,0.3);
+  }
 
-    /* Dal Column Colors (Orange) */
-    .dal-header { background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important; }
-    .dal-sub { background: #ffedd5 !important; color: #9a3412 !important; }
-    .report-table td:nth-child(24), 
-    .report-table td:nth-child(25), 
-    .report-table td:nth-child(26), 
-    .report-table td:nth-child(27), 
-    .report-table td:nth-child(28) { background-color: #fff7ed; }
+  .login-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 5px;
+  }
 
-    /* First 3 columns styling */
-    .report-table th:first-child,
-    .report-table th:nth-child(2),
-    .report-table th:nth-child(3) { background: linear-gradient(90deg, #a855f7 0%, #ec4899 100%); }
-    .report-table td:first-child,
-    .report-table td:nth-child(2),
-    .report-table td:nth-child(3) { background-color: #faf5ff; font-weight: 600; }
+  .login-subtitle {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
 
-    .monthly-summary-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-    .monthly-summary-table th { background: linear-gradient(90deg, #059669 0%, #10b981 100%); color: white; padding: 12px 8px; font-weight: 600; text-align: center; font-size: 0.9rem; }
-    .monthly-summary-table td { padding: 12px 8px; border-bottom: 1px solid #e5e7eb; text-align: center; font-size: 0.9rem; }
-    .monthly-summary-table tr:hover { background: #f0fdf4; }
-    .monthly-summary-table .item-name { text-align: left; font-weight: 600; color: #374151; }
-    .monthly-summary-table .total-usage { font-weight: bold; color: #059669; }
-    .monthly-summary-table .balance { font-weight: bold; }
-    .monthly-summary-table .balance.low { color: #dc2626; background: #fee2e2; }
-    .monthly-summary-table .balance.good { color: #059669; }
-    .monthly-summary-table tfoot { background: #ecfdf5; font-weight: bold; }
-    .monthly-summary-table tfoot td { border-top: 2px solid #059669; color: #065f46; }
-  </style>
-</head>
-<body class="pb-20">
-<!DOCTYPE html>
-<html lang="gu">
-<head>
+  .login-contact-box {
+    background: #f8faff;
+    border: 1px dashed var(--primary-light);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+  }
 
-</head>
-<body class="pb-20">
+  .login-input-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+  }
 
-  <!-- PASSWORD PROTECTION LAYER -->
-<div id="password-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 50%,#0ea5e9 100%);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans Gujarati',sans-serif;">
-  <div style="background:white;padding:2rem;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);max-width:400px;width:90%;text-align:center;animation:slideIn 0.5s ease;">
-    <div style="font-size:4rem;margin-bottom:1rem;">🔒</div>
-    <h2 style="color:#1e40af;font-size:1.5rem;font-weight:bold;margin-bottom:0.5rem;">પાસવર્ડ આવશ્યક</h2>
-    <p style="color:#64748b;margin-bottom:1.5rem;font-size:0.9rem;">આ એપ્લિકેશન એક્સેસ કરવા માટે પાસવર્ડ દાખલ કરો</p>
+  .login-input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 18px;
+    text-align: center;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    letter-spacing: 4px;
+    transition: all 0.3s;
+    outline: none;
+  }
+
+  .login-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(26,35,126,0.1);
+  }
+
+  .login-input.error {
+    border-color: var(--danger);
+    animation: shake 0.4s ease-in-out;
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--gradient1);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+  }
+
+  .login-btn:active { transform: scale(0.98); }
+  .login-btn:hover { box-shadow: 0 4px 15px rgba(26,35,126,0.3); }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 10px;
+    font-weight: 600;
+    min-height: 18px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .error-msg.visible { opacity: 1; }
+
+  .hidden { display: none !important; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: var(--gradient1);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(26,35,126,0.4);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 10px;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+    opacity: 0.85;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  .header-date {
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.9;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+
+  /* ===== TABS ===== */
+  .tab-bar {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    padding: 0 10px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-bottom: 3px solid transparent;
+    position: relative;
+  }
+
+  .tab-btn.active {
+    color: white;
+    border-bottom-color: #ffd54f;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .tab-btn:hover { background: rgba(255,255,255,0.08); color: white; }
+  .tab-icon { font-size: 16px; }
+
+  /* ===== PAGE CONTENT ===== */
+  .page { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--gradient1);
+    border-radius: 12px;
+    color: white;
+    box-shadow: var(--shadow);
+  }
+  .section-title h2 { font-size: 16px; font-weight: 700; }
+  .section-title span { font-size: 20px; }
+
+  /* ===== STOCK CARDS ===== */
+  .stock-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+
+  .stock-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 0;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+  }
+  .stock-card:hover { transform: translateY(-2px); }
+
+  .stock-card-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .stock-card-header::before {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 10px; }
+  .card-icon { font-size: 28px; }
+  .card-name { font-size: 17px; font-weight: 800; }
+  .card-name-en { font-size: 11px; opacity: 0.85; }
+  .card-closing-badge {
+    background: rgba(255,255,255,0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .stock-card-body {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stock-field { display: flex; flex-direction: column; gap: 4px; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .field-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .field-unit { font-size: 11px; color: var(--text-light); font-weight: 400; }
+  .editable-field { display: flex; align-items: center; gap: 6px; }
+  .editable-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    background: #f8faff;
+    color: var(--text);
+    transition: all 0.2s;
+    text-align: right;
+  }
+  .editable-input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(57,73,171,0.15);
+  }
+  /* Themes */
+  .theme-wheat .stock-card-header { background: linear-gradient(135deg, #f57c00, #ff8f00); }
+  .theme-rice .stock-card-header { background: linear-gradient(135deg, #0288d1, #0277bd); }
+  .theme-oil .stock-card-header { background: linear-gradient(135deg, #7b1fa2, #6a1b9a); }
+  .theme-chana .stock-card-header { background: linear-gradient(135deg, #558b2f, #33691e); }
+  .theme-dal .stock-card-header { background: linear-gradient(135deg, #c62828, #b71c1c); }
+  .theme-chanadal .stock-card-header { background: linear-gradient(135deg, #00695c, #004d40); }
+
+  /* ===== CALENDAR PAGE ===== */
+  .calendar-container {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .calendar-header {
+    background: var(--gradient1);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+  }
+  .cal-nav-btn {
+    width: 36px; height: 36px;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .cal-nav-btn:hover { background: rgba(255,255,255,0.35); transform: scale(1.05); }
+  .cal-month-title { font-size: 18px; font-weight: 800; text-align: center; }
+  .cal-year { font-size: 13px; opacity: 0.85; }
+  .calendar-grid { padding: 12px; }
+  .day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .day-header {
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+  }
+  .day-header.sunday { color: #c62828; background: #ffebee; }
+  .day-header.saturday { color: #5c6bc0; background: #e8eaf6; }
+  .day-header:not(.sunday):not(.saturday) { color: #1a237e; background: #e8eaf6; }
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day {
+    border-radius: 10px;
+    min-height: 64px;
+    padding: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    background: #f8faff;
+  }
+  .cal-day:hover { border-color: var(--primary-light); transform: scale(1.02); }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.empty:hover { transform: none; border-color: transparent; }
+  .cal-day.sunday { background: #fff5f5; }
+  .cal-day.saturday { background: #f5f5ff; }
+  .cal-day.today { border-color: var(--accent) !important; background: #fff8e1; }
+  .cal-day.has-data { border-color: #4caf50 !important; background: #f1fff3 !important; }
+  .cal-date-num { font-size: 13px; font-weight: 700; margin-bottom: 2px; line-height: 1; }
+  .cal-day.sunday .cal-date-num { color: #c62828; }
+  .cal-day.saturday .cal-date-num { color: #5c6bc0; }
+  .cal-day:not(.sunday):not(.saturday) .cal-date-num { color: var(--text); }
+  .cal-beneficiary {
+    font-size: 15px;
+    font-weight: 800;
+    color: #2e7d32;
+    text-align: center;
+    line-height: 1;
+  }
+  .cal-label { font-size: 9px; color: var(--text-light); text-align: center; }
+  .cal-holiday-label {
+    font-size: 9px;
+    color: #c62828;
+    text-align: center;
+    font-weight: 600;
+  }
+  .cal-day-info {
+    font-size: 9px;
+    color: #7986cb;
+    margin-top: 1px;
+    line-height: 1.2;
+  }
+
+  /* Edit Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease;
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-date-label { font-size: 13px; color: var(--text-light); margin-bottom: 16px; }
+  .modal-input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .modal-input-group label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .modal-input {
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .modal-input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(57,73,171,0.15);
+  }
+  .modal-btn-row { display: flex; gap: 10px; }
+  .btn-cancel, .btn-save {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-cancel { background: #f5f5f5; color: var(--text-light); }
+  .btn-cancel:hover { background: #eeeeee; }
+  .btn-save { background: var(--gradient1); color: white; }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,35,126,0.3); }
+
+  /* ===== REPORT PAGE ===== */
+  .report-controls {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .report-type-selector {
+    display: flex;
+    background: #f0f4ff;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+    flex: 1;
+  }
+  .report-type-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .report-type-btn.active {
+    background: var(--gradient1);
+    color: white;
+    box-shadow: 0 2px 8px rgba(26,35,126,0.3);
+  }
+  .date-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .date-picker-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+  }
+  .date-input {
+    padding: 8px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: white;
+    cursor: pointer;
+  }
+  .date-input:focus { outline: none; border-color: var(--primary-light); }
+  .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .action-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-print { background: linear-gradient(135deg, #1565c0, #1976d2); color: white; }
+  .btn-print:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(21,101,192,0.4); }
+  .btn-share { background: linear-gradient(135deg, #2e7d32, #388e3c); color: white; }
+  .btn-share:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
+  .btn-preview { background: linear-gradient(135deg, #6a1b9a, #7b1fa2); color: white; }
+  .btn-preview:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(106,27,154,0.4); }
+
+  /* Report Table Styles with Sticky Headers and Colored Columns */
+  .report-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .report-card-header {
+    padding: 14px 18px;
+    background: var(--gradient1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .report-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .report-table-wrapper {
+    overflow-x: auto;
+    max-height: 70vh; /* Limit height to enable scroll */
+    position: relative;
+  }
+  
+  .report-table {
+    width: 100%;
+    border-collapse: separate; /* Required for sticky */
+    border-spacing: 0;
+    font-size: 11px;
+    min-width: 1200px; 
+  }
+
+  /* Sticky Header Styles */
+  .report-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+  }
+
+  /* Sticky First Column (Date/Day) */
+  .report-table th:first-child,
+  .report-table td:first-child,
+  .report-table th:nth-child(2),
+  .report-table td:nth-child(2) {
+    position: sticky;
+    z-index: 5; /* Below header z-index */
+    background-color: white;
+  }
+  
+  /* Date Column sticky left */
+  .report-table th:first-child, .report-table td:first-child { left: 0; border-right: 2px solid #ddd; }
+  
+  /* Day Column sticky left */
+  .report-table th:nth-child(2), .report-table td:nth-child(2) { left: 40px; border-right: 2px solid #ddd; }
+
+  /* Header Backgrounds override for sticky cells */
+  .report-table thead th:first-child,
+  .report-table thead th:nth-child(2) {
+    z-index: 15; /* Higher than regular sticky cols to stay on top */
+    background: #e8eaf6;
+  }
+
+  .report-table th {
+    padding: 8px 6px;
+    background: #e8eaf6;
+    color: var(--primary);
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    font-size: 10px;
+  }
+  .report-table td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  
+  .report-table tr:nth-child(even) td { background: #fafbff; }
+  .report-table tr:hover td { background: #f0f4ff; }
+
+  /* Colored Column Backgrounds (Apply to Data Cells) */
+  .col-wheat { background-color: var(--bg-wheat) !important; }
+  .col-rice { background-color: var(--bg-rice) !important; }
+  .col-oil { background-color: var(--bg-oil) !important; }
+  .col-chana { background-color: var(--bg-chana) !important; }
+  .col-dal { background-color: var(--bg-dal) !important; }
+  .col-chanadal { background-color: var(--bg-chanadal) !important; }
+
+  /* Total Row */
+  .report-table .total-row td {
+    background: #ffe0b2 !important;
+    font-weight: 800;
+    font-size: 12px;
+    color: #e65100;
+    border-top: 2px solid #ffb74d;
+    border-bottom: 3px double #e65100;
+  }
+
+  .holiday-row td { color: #c62828; background: #ffebee !important; }
+
+  .item-color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  /* Summary Stats */
+  .summary-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    border-left: 4px solid;
+  }
+  .stat-card.blue { border-color: #1a237e; }
+  .stat-card.orange { border-color: #f57c00; }
+  .stat-card.green { border-color: #2e7d32; }
+  .stat-card.red { border-color: #c62828; }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  /* ===== FOOTER ===== */
+  .app-footer {
+    background: var(--gradient1);
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    margin-top: 8px;
+  }
+  .footer-dev { font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
+  .footer-contact {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .footer-contact a { color: #ffd54f; text-decoration: none; font-weight: 600; }
+
+  /* ===== PRINT STYLES ===== */
+  @media print {
+    body { background: white !important; }
+    .app-header, .tab-bar, .report-controls, .app-footer { display: none !important; }
+    .page { display: block !important; padding: 0 !important; }
+    .print-area { display: block !important; }
+    .no-print { display: none !important; }
+    .report-card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; margin-bottom: 10px; }
+    .print-header { display: block !important; text-align: center; padding: 10px; border-bottom: 2px solid #1a237e; margin-bottom: 10px; }
+    .print-title { font-size: 18px; font-weight: 800; color: #1a237e; }
+    .print-subtitle { font-size: 13px; color: #555; }
+    .print-footer { display: block !important; text-align: center; font-size: 11px; color: #777; margin-top: 15px; border-top: 1px solid #ddd; padding-top: 8px; }
     
-    <div style="position:relative;margin-bottom:1rem;">
-      <input type="password" id="password-input" placeholder="પાસવર્ડ દાખલ કરો" style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;text-align:center;outline:none;transition:all 0.3s;" onkeyup="if(event.key==='Enter')checkPassword()" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+    /* Reset sticky for print */
+    .report-table th, .report-table td { position: static !important; }
+  }
+  .print-header, .print-footer { display: none; }
+
+  /* Scroll indicator for calendar */
+  .calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #f8faff;
+    border-top: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-light);
+    font-weight: 600;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Consumption Rules Card */
+  .rules-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .rules-header {
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #263238, #37474f);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .rules-body { padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rule-item { padding: 8px 10px; border-radius: 8px; font-size: 11px; }
+
+  /* Total beneficiary bar */
+  .total-summary-bar {
+    background: var(--gradient2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(230,81,0,0.3);
+  }
+  .total-bar-label { font-size: 13px; font-weight: 700; opacity: 0.9; }
+  .total-bar-value { font-size: 24px; font-weight: 800; }
+
+  /* Responsive tweaks */
+  @media (min-width: 480px) {
+    .stock-grid { grid-template-columns: 1fr 1fr; }
+    .summary-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 360px) {
+    .cal-day { min-height: 54px; }
+    .cal-beneficiary { font-size: 13px; }
+  }
+
+  /* Snackbar */
+  .snackbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #323232;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .snackbar.show { transform: translateX(-50%) translateY(0); }
+
+  /* report preview popup */
+  .preview-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 2000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .preview-modal.show { display: block; }
+  .preview-content {
+    background: white;
+    max-width: 1400px; /* Very wide for table */
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .preview-close {
+    position: sticky;
+    top: 0;
+    background: #1a237e;
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    z-index: 10;
+  }
+  .preview-close button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .preview-body { padding: 20px; }
+
+</style>
+</head>
+<body>
+
+<!-- ======================= LOGIN OVERLAY ======================= -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">🔒</div>
+    <div class="login-title">સિસ્ટમ લોગિન</div>
+    <div class="login-subtitle">સુરક્ષિત વિસ્તાર</div>
+    <div class="login-contact-box">
+      પાસવર્ડ માટે સંપર્ક કરો, <br>
+      દેવેન્દ્ર રામાનુજ, <br>
+      mo. 9276505035
     </div>
-    
-    <button onclick="checkPassword()" style="width:100%;padding:12px;background:linear-gradient(90deg,#2563eb 0%,#3b82f6 100%);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 20px -5px rgba(59,130,246,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-      એન્ટર કરો
+    <div class="login-input-wrapper">
+      <input type="password" id="loginPassword" class="login-input" placeholder="Enter Password" autocomplete="off">
+    </div>
+    <button class="login-btn" onclick="checkLogin()">LOGIN</button>
+    <div id="loginError" class="error-msg">ખોટો પાસવર્ડ! ફરી પ્રયાસ કરો.</div>
+  </div>
+</div>
+
+<!-- APP HEADER -->
+<header class="app-header">
+  <div class="header-top">
+    <div class="header-logo">
+      <div class="logo-icon">📊</div>
+      <div>
+        <div class="header-title">My Daily Report</div>
+        <div class="header-subtitle">ખાદ્ય સ્ટોક મેનેજમેન્ટ સિસ્ટમ</div>
+      </div>
+    </div>
+    <div class="header-date" id="headerDate">
+      <div id="todayDate" style="font-weight:700;font-size:14px;"></div>
+      <div id="todayDay" style="font-size:10px;opacity:0.85;"></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('page1')" id="tab1">
+      <span class="tab-icon">🏪</span> જથ્થો
     </button>
-    
-    <div id="error-msg" style="color:#dc2626;margin-top:1rem;font-size:0.9rem;display:none;animation:shake 0.5s;">❌ ખોટો પાસવર્ડ! ફરીથી પ્રયાસ કરો.</div>
-    
-    <div style="margin-top:2rem;padding-top:1.5rem;border-top:2px dashed #e2e8f0;">
-      <p style="color:#475569;font-size:0.85rem;margin-bottom:0.5rem;">🔑 પાસવર્ડ માટે સંપર્ક કરો</p>
-      <p style="color:#1e40af;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem;">દેવેન્દ્ર રામાનુજ</p>
-      <a href="tel:9276505035" style="display:inline-flex;align-items:center;gap:8px;color:#059669;font-weight:600;text-decoration:none;font-size:1rem;padding:8px 16px;background:#d1fae5;border-radius:20px;transition:all 0.3s;" onmouseover="this.style.background='#a7f3d0'" onmouseout="this.style.background='#d1fae5'">
-        <span>📞</span> Mo. 9276505035
-      </a>
+    <button class="tab-btn" onclick="switchTab('page2')" id="tab2">
+      <span class="tab-icon">📅</span> કેલેન્ડર
+    </button>
+    <button class="tab-btn" onclick="switchTab('page3')" id="tab3">
+      <span class="tab-icon">📋</span> રિપોર્ટ
+    </button>
+  </div>
+</header>
+
+<!-- ===================== PAGE 1: STOCK MANAGEMENT ===================== -->
+<div class="page active" id="page1">
+  <div class="section-title">
+    <span>🏪</span>
+    <div>
+      <h2>ખાદ્ય જથ્થો સ્ટોક</h2>
+      <div style="font-size:11px;opacity:0.85;" id="stockMonthLabel"></div>
+    </div>
+    <button onclick="refreshStock()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">🔄 અપડેટ</button>
+  </div>
+  <div class="total-summary-bar">
+    <div>
+      <div class="total-bar-label">📊 ચાલુ માસ - કુલ લાભાર્થી</div>
+      <div style="font-size:11px;opacity:0.8;">calendar ના data પ્રમાણે</div>
+    </div>
+    <div class="total-bar-value" id="totalBeneficiaries">0</div>
+  </div>
+  <div class="stock-grid" id="stockGrid"></div>
+  <!-- Consumption Rules -->
+  <div class="rules-card" style="margin-top:14px;">
+    <div class="rules-header" onclick="toggleRules()">
+      📜 વપરાશ નિયમો <span id="rulesArrow" style="margin-left:auto;">▼</span>
+    </div>
+    <div id="rulesBody" class="rules-body" style="display:none;">
+      <div class="rule-item" style="background:#fff8e1;border:1px solid #ffe082;">
+        <div style="font-weight:700;color:#f57c00;font-size:12px;">🌾 ઘઉં</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">સોમ,બુધ,ગુરુ,શુક્ર,શનિ: 30g/વ્યક્તિ<br>સોમ,મંગળ,શુક્ર: 50g/વ્યક્તિ</div>
+      </div>
+      <div class="rule-item" style="background:#e1f5fe;border:1px solid #81d4fa;">
+        <div style="font-weight:700;color:#0288d1;font-size:12px;">🍚 ચોખા</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">મંગળ: 30g/વ્યક્તિ<br>બુધ,ગુરુ,શનિ: 50g/વ્યક્તિ</div>
+      </div>
+      <div class="rule-item" style="background:#f3e5f5;border:1px solid #ce93d8;">
+        <div style="font-weight:700;color:#7b1fa2;font-size:12px;">🫙 તેલ</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">સોમ-શનિ: 5g/વ્યક્તિ<br>સોમ-શનિ: 8g/વ્યક્તિ</div>
+      </div>
+      <div class="rule-item" style="background:#e8f5e9;border:1px solid #a5d6a7;">
+        <div style="font-weight:700;color:#558b2f;font-size:12px;">🫘 ચણા</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">ગુરુ,શુક્ર: 20g/વ્યક્તિ</div>
+      </div>
+      <div class="rule-item" style="background:#ffebee;border:1px solid #ef9a9a;">
+        <div style="font-weight:700;color:#c62828;font-size:12px;">🫛 દાળ</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">સોમ,બુધ: 20g/વ્યક્તિ</div>
+      </div>
+      <div class="rule-item" style="background:#e0f2f1;border:1px solid #80cbc4;">
+        <div style="font-weight:700;color:#00695c;font-size:12px;">🌿 ચણાદાળ</div>
+        <div style="font-size:10px;margin-top:4px;color:#555;">શનિ: 20g/વ્યક્તિ</div>
+      </div>
     </div>
   </div>
 </div>
 
-<style>
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
-}
-</style>
+<!-- ===================== PAGE 2: CALENDAR ===================== -->
+<div class="page" id="page2">
+  <div class="calendar-container">
+    <div class="calendar-header">
+      <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+      <div style="text-align:center;">
+        <div class="cal-month-title" id="calMonthTitle"></div>
+        <div class="cal-year" id="calYearTitle"></div>
+      </div>
+      <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+    </div>
+    <div class="calendar-grid">
+      <div class="day-headers">
+        <div class="day-header sunday">રવિ</div>
+        <div class="day-header">સોમ</div>
+        <div class="day-header">મંગળ</div>
+        <div class="day-header">બુધ</div>
+        <div class="day-header">ગુરુ</div>
+        <div class="day-header">શુક્ર</div>
+        <div class="day-header saturday">શનિ</div>
+      </div>
+      <div class="calendar-days" id="calendarDays"></div>
+    </div>
+    <div class="calendar-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#f1fff3;border:1px solid #4caf50;"></div><span>લાભાર્થી ઉમેર્યા</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fff8e1;border:1px solid #f57c00;"></div><span>આજ</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fff5f5;"></div><span>રજા (રવિ)</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f5f5ff;"></div><span>શનિ</span></div>
+    </div>
+  </div>
+  <div class="rules-card">
+    <div class="rules-header">📊 માસ સારાંશ - <span id="calSummaryMonth"></span></div>
+    <div style="padding:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+        <div style="background:#e8eaf6;padding:10px 6px;border-radius:10px;">
+          <div style="font-size:10px;color:#7986cb;font-weight:600;">કુલ દિવસ</div>
+          <div style="font-size:20px;font-weight:800;color:#3949ab;" id="sumTotalDays">0</div>
+        </div>
+        <div style="background:#e8f5e9;padding:10px 6px;border-radius:10px;">
+          <div style="font-size:10px;color:#66bb6a;font-weight:600;">કાર્ય દિવસ</div>
+          <div style="font-size:20px;font-weight:800;color:#2e7d32;" id="sumWorkDays">0</div>
+        </div>
+        <div style="background:#fff3e0;padding:10px 6px;border-radius:10px;">
+          <div style="font-size:10px;color:#ffa726;font-weight:600;">કુલ લાભાર્થી</div>
+          <div style="font-size:20px;font-weight:800;color:#e65100;" id="sumBenefTotal">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- ===================== PAGE 3: REPORTS ===================== -->
+<div class="page" id="page3">
+  <div class="section-title">
+    <span>📋</span>
+    <h2>માસિક / દૈનિક રિપોર્ટ</h2>
+  </div>
+  <div class="report-controls">
+    <div class="report-type-selector">
+      <button class="report-type-btn active" id="rptBtnMonthly" onclick="switchReport('monthly')">📅 માસિક</button>
+      <button class="report-type-btn" id="rptBtnDaily" onclick="switchReport('daily')">📆 દૈનિક</button>
+    </div>
+    <div class="date-picker-group" id="dailyDatePicker" style="display:none;">
+      <label>તારીખ:</label>
+      <input type="date" class="date-input" id="dailyReportDate" onchange="buildDailyReport()">
+    </div>
+    <div class="action-btns">
+      <button class="action-btn btn-preview" onclick="openPreview()">🔍 પ્રીવ્યૂ</button>
+      <button class="action-btn btn-print" onclick="printReport()">🖨️ પ્રિન્ટ</button>
+      <button class="action-btn btn-share" onclick="shareReport()">📤 શેર</button>
+    </div>
+  </div>
+  <div id="reportContent"></div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="app-footer">
+  <div class="footer-dev">✨ Developed by Devendra Ramanuj</div>
+  <div class="footer-contact">
+    <span>📞 <a href="tel:9276505035">9276505035</a> | <a href="tel:9274505035">9274505035</a></span>
+    <span>✉️ <a href="mailto:devenramanuj@outlook.com">devenramanuj@outlook.com</a></span>
+  </div>
+</footer>
+
+<!-- ===================== MODALS ===================== -->
+<!-- Beneficiary Edit Modal -->
+<div class="modal-overlay" id="benefModal">
+  <div class="modal-card">
+    <div class="modal-title">👥 લાભાર્થી સંખ્યા</div>
+    <div class="modal-date-label" id="modalDateLabel">--</div>
+    <div class="modal-input-group">
+      <label>લાભાર્થીઓ (Beneficiaries)</label>
+      <input type="number" class="modal-input" id="benefInput" min="0" placeholder="0" autofocus>
+    </div>
+    <div id="dayConsumptionPreview" style="padding:10px;background:#f8faff;border-radius:10px;font-size:11px;color:#555;margin-bottom:14px;display:none;"></div>
+    <div class="modal-btn-row">
+      <button class="btn-cancel" onclick="closeModal()">❌ રદ</button>
+      <button class="btn-save" onclick="saveBeneficiary()">✅ સેવ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="preview-modal" id="previewModal">
+  <div class="preview-content">
+    <div class="preview-close">
+      <span>🖨️ પ્રિન્ટ પ્રીવ્યૂ</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="printReport()" style="background:#f57c00;">🖨️ પ્રિન્ટ</button>
+        <button onclick="closePreview()">✕ બંધ</button>
+      </div>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
+<!-- Snackbar -->
+<div class="snackbar" id="snackbar"></div>
+
+<!-- ===================== JAVASCRIPT ===================== -->
 <script>
-(function() {
-  const CORRECT_PASSWORD = "1234";
-  
-  window.checkPassword = function() {
-    const input = document.getElementById('password-input').value;
-    const errorMsg = document.getElementById('error-msg');
-    const overlay = document.getElementById('password-overlay');
-    
-    if (input === CORRECT_PASSWORD) {
-      overlay.style.animation = 'fadeOut 0.5s ease forwards';
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        document.body.style.overflow = 'auto';
-      }, 500);
-    } else {
-      errorMsg.style.display = 'block';
-      document.getElementById('password-input').value = '';
-      document.getElementById('password-input').focus();
-      setTimeout(() => {
-        errorMsg.style.display = 'none';
-      }, 3000);
-    }
-  };
-  
-  // Prevent right click and F12
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('keydown', e => {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-      e.preventDefault();
-    }
-  });
-  
-  // Block body scroll until unlocked
-  document.body.style.overflow = 'hidden';
-})();
-</script>
+// ===================================================================
+// LOGIN LOGIC
+// ===================================================================
+const CORRECT_PASS = "1234";
+function initAuth() {
+  const isLoggedIn = sessionStorage.getItem('app_is_logged_in');
+  const overlay = document.getElementById('loginOverlay');
+  if (isLoggedIn === 'true') {
+    overlay.classList.add('hidden');
+  } else {
+    overlay.classList.remove('hidden');
+    document.getElementById('loginPassword').focus();
+  }
+}
+function checkLogin() {
+  const input = document.getElementById('loginPassword');
+  const errorMsg = document.getElementById('loginError');
+  const val = input.value;
+  if (val === CORRECT_PASS) {
+    sessionStorage.setItem('app_is_logged_in', 'true');
+    const overlay = document.getElementById('loginOverlay');
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+      overlay.style.opacity = '1';
+    }, 500);
+  } else {
+    input.classList.add('error');
+    errorMsg.classList.add('visible');
+    input.value = '';
+    setTimeout(() => {
+      input.classList.remove('error');
+      errorMsg.classList.remove('visible');
+    }, 2000);
+  }
+}
+document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') checkLogin();
+});
 
+// ===================================================================
+// DATA STORE
+// ===================================================================
+const ITEMS = [
+  { key:'wheat', name:'ઘઉં', nameEn:'Wheat', icon:'🌾', theme:'theme-wheat', color:'#f57c00' },
+  { key:'rice',  name:'ચોખા', nameEn:'Rice', icon:'🍚', theme:'theme-rice', color:'#0288d1' },
+  { key:'oil',   name:'તેલ', nameEn:'Oil', icon:'🫙', theme:'theme-oil', color:'#7b1fa2' },
+  { key:'chana', name:'ચણા', nameEn:'Chickpeas', icon:'🫘', theme:'theme-chana', color:'#558b2f' },
+  { key:'dal',   name:'દાળ', nameEn:'Dal', icon:'🫛', theme:'theme-dal', color:'#c62828' },
+  { key:'chanadal',name:'ચણાદાળ',nameEn:'Chana Dal',icon:'🌿',theme:'theme-chanadal',color:'#00695c'}
+];
 
-  <!-- Header -->
-  <header class="header-gradient text-white shadow-lg">
-    <div class="container mx-auto px-4 py-4">
-      <h1 class="text-xl md:text-3xl font-bold text-center">
-        <i class="fas fa-utensils mr-2"></i>બાળકોના નાસ્તાનું વ્યવસ્થાપન
-      </h1>
-      <p class="text-center text-orange-100 mt-1 text-sm">મિડ-ડે મીલ મેનેજમેન્ટ સિસ્ટમ</p>
-    </div>
-  </header>
+let currentMonth, currentYear;
+let editingDate = null;
+let currentReport = 'monthly';
 
-  <!-- Navigation -->
-  <nav class="container mx-auto px-2 md:px-4 py-4">
-    <div class="grid grid-cols-4 gap-1 md:gap-2 bg-white rounded-xl shadow-md p-1">
-      <button onclick="showPage('calendar')" id="tab-calendar" class="tab-btn tab-active-calendar flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium">
-        <i class="fas fa-calendar-alt text-lg"></i>
-        <span class="hidden md:inline">કેલેન્ડર</span>
-        <span class="md:hidden">કેલે.</span>
-      </button>
-      <button onclick="showPage('menu')" id="tab-menu" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
-        <i class="fas fa-utensils text-lg"></i>
-        <span class="hidden md:inline">મેનુ</span>
-        <span class="md:hidden">મેનુ</span>
-      </button>
-      <button onclick="showPage('inventory')" id="tab-inventory" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
-        <i class="fas fa-box text-lg"></i>
-        <span class="hidden md:inline">સ્ટોક</span>
-        <span class="md:hidden">સ્ટોક</span>
-      </button>
-      <button onclick="showPage('reports')" id="tab-reports" class="tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100">
-        <i class="fas fa-file-alt text-lg"></i>
-        <span class="hidden md:inline">રિપોર્ટ</span>
-        <span class="md:hidden">રિપો.</span>
-      </button>
-    </div>
-  </nav>
+// ===================================================================
+// CONSUMPTION RULES per weekday
+// ===================================================================
+function getDayRules(dayOfWeek) {
+  if (dayOfWeek === 0) return []; 
+  const rules = [];
+  if ([1,3,4,5,6].includes(dayOfWeek)) rules.push({ key:'wheat', grams:30, label:'ઘઉં 30g' });
+  if ([1,2,5].includes(dayOfWeek))    rules.push({ key:'wheat', grams:50, label:'ઘઉં 50g' });
+  if (dayOfWeek === 2)              rules.push({ key:'rice', grams:30, label:'ચોખા 30g' });
+  if ([3,4,6].includes(dayOfWeek))    rules.push({ key:'rice', grams:50, label:'ચોખા 50g' });
+  rules.push({ key:'oil', grams:5, label:'તેલ 5g' });
+  rules.push({ key:'oil', grams:8, label:'તેલ 8g' });
+  if ([4,5].includes(dayOfWeek))     rules.push({ key:'chana', grams:20, label:'ચણા 20g' });
+  if ([1,3].includes(dayOfWeek))     rules.push({ key:'dal', grams:20, label:'દાળ 20g' });
+  if (dayOfWeek === 6)              rules.push({ key:'chanadal', grams:20, label:'ચણાદાળ 20g' });
+  return rules;
+}
 
-  <!-- Main Content -->
-  <main class="container mx-auto px-2 md:px-4">
-    
-    <!-- Page 1: Calendar -->
-    <div id="page-calendar" class="page active">
-      <div class="bg-white rounded-2xl shadow-xl border-2 border-orange-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-orange-100 to-amber-100 p-4 md:p-6">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <h2 class="text-lg md:text-2xl font-bold text-orange-800">
-              <i class="fas fa-calendar-alt mr-2"></i>ચાલુ માસનું કેલેન્ડર
-            </h2>
-            <div class="flex items-center gap-2">
-              <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-lg border-2 border-orange-300 hover:bg-orange-100 flex items-center justify-center transition-colors">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <div id="current-month-year" class="text-base md:text-xl font-bold text-orange-800 px-2 md:px-4 min-w-[120px] md:min-w-[180px] text-center"></div>
-              <button onclick="changeMonth(1)" class="w-10 h-10 rounded-lg border-2 border-orange-300 hover:bg-orange-100 flex items-center justify-center transition-colors">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="p-3 md:p-6">
-          <div class="grid grid-cols-7 gap-1 md:gap-2 mb-2">
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-red-100 text-red-600 rounded">રવિ</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">સોમ</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">મંગળ</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">બુધ</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">ગુરુ</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">શુક્ર</div>
-            <div class="text-center font-bold py-2 text-xs md:text-sm bg-orange-100 text-orange-700 rounded">શનિ</div>
-          </div>
-          <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
-          <div class="mt-4 md:mt-6 flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm">
-            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-red-100 border border-red-300 rounded"></div><span>રવિવાર - રજા</span></div>
-            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-white border border-orange-200 rounded"></div><span>કોઈ ડેટા નથી</span></div>
-            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-green-100 border border-green-400 rounded"></div><span>લાભાર્થી ઉમેર્યા</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
+// ===================================================================
+// STORAGE HELPERS
+// ===================================================================
+function saveData(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
+function loadData(key, def) {
+  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : def; } catch(e){ return def; }
+}
+function getMonthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+function getBenefData() { return loadData(`benef_${getMonthKey(currentYear, currentMonth)}`, {}); }
+function saveBenefData(data) { saveData(`benef_${getMonthKey(currentYear, currentMonth)}`, data); }
+function getStockData() { return loadData(`stock_${getMonthKey(currentYear, currentMonth)}`, {}); }
+function saveStockData(data) { saveData(`stock_${getMonthKey(currentYear, currentMonth)}`, data); }
 
-    <!-- Page 2: Menu -->
-    <div id="page-menu" class="page">
-      <div class="space-y-4 md:space-y-6">
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-green-200 p-4 md:p-6">
-          <h2 class="text-xl md:text-2xl font-bold text-green-800"><i class="fas fa-utensils mr-2"></i>નાસ્તાનું મેનુ અને નિયમો</h2>
-          <p class="text-gray-700 mt-2">દરેક લાભાર્થી દીઠ નાસ્તાનો જથ્થો - અઠવાડિયાના વાર મુજબ</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-amber-100 to-yellow-100 p-4">
-            <h3 class="text-lg md:text-xl font-bold text-amber-800"><i class="fas fa-sun mr-2 text-amber-500"></i>સવારના નાસ્તાનું મેનુ</h3>
-          </div>
-          <div class="overflow-x-auto p-2 md:p-4">
-            <table class="w-full text-xs md:text-sm">
-              <thead><tr class="bg-amber-50"><th class="p-2 text-left font-bold text-amber-800">વસ્તુ</th><th class="p-2 text-center font-bold text-amber-800">સોમ</th><th class="p-2 text-center font-bold text-amber-800">મંગળ</th><th class="p-2 text-center font-bold text-amber-800">બુધ</th><th class="p-2 text-center font-bold text-amber-800">ગુરુ</th><th class="p-2 text-center font-bold text-amber-800">શુક્ર</th><th class="p-2 text-center font-bold text-amber-800">શનિ</th><th class="p-2 text-center font-bold text-red-500">રવિ</th></tr></thead>
-              <tbody id="morning-menu-table"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-orange-100 to-amber-100 p-4">
-            <h3 class="text-lg md:text-xl font-bold text-orange-800"><i class="fas fa-cloud-sun mr-2 text-orange-500"></i>બપોરના નાસ્તાનું મેનુ</h3>
-          </div>
-          <div class="overflow-x-auto p-2 md:p-4">
-            <table class="w-full text-xs md:text-sm">
-              <thead><tr class="bg-orange-50"><th class="p-2 text-left font-bold text-orange-800">વસ્તુ</th><th class="p-2 text-center font-bold text-orange-800">સોમ</th><th class="p-2 text-center font-bold text-orange-800">મંગળ</th><th class="p-2 text-center font-bold text-orange-800">બુધ</th><th class="p-2 text-center font-bold text-orange-800">ગુરુ</th><th class="p-2 text-center font-bold text-orange-800">શુક્ર</th><th class="p-2 text-center font-bold text-orange-800">શનિ</th><th class="p-2 text-center font-bold text-red-500">રવિ</th></tr></thead>
-              <tbody id="afternoon-menu-table"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-white rounded-xl shadow-md border-2 border-green-200 p-4">
-            <h4 class="text-base md:text-lg font-bold text-green-800 mb-3">સવારના નાસ્તામાં</h4>
-            <div class="space-y-2 text-sm">
-              <p>🌾 ઘઉં: 30ગ્રામ (સોમ, બુધ, ગુરુ, શુક્ર, શનિ)</p>
-              <p>🍚 ચોખા: 30ગ્રામ (મંગળવાર)</p>
-              <p>🛢️ તેલ: 5ગ્રામ (સોમ થી શનિ)</p>
-              <p>🫘 ચણા: 20ગ્રામ (મંગળ, ગુરુ, શુક્ર)</p>
-              <p>🟡 દાળ: 20ગ્રામ (સોમ, બુધ)</p>
-            </div>
-          </div>
-          <div class="bg-white rounded-xl shadow-md border-2 border-orange-200 p-4">
-            <h4 class="text-base md:text-lg font-bold text-orange-800 mb-3">બપોરના નાસ્તામાં</h4>
-            <div class="space-y-2 text-sm">
-              <p>🌾 ઘઉં: 50ગ્રામ (સોમ, મંગળ, શુક્ર)</p>
-              <p>🍚 ચોખા: 50ગ્રામ (બુધ, ગુરુ, શનિ)</p>
-              <p>🛢️ તેલ: 8ગ્રામ (સોમ થી શનિ)</p>
-              <p class="text-gray-400">🫘 ચણા: વપરાશ નથી</p>
-              <p class="text-gray-400">🟡 દાળ: વપરાશ નથી</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-          <p class="text-red-700 text-center font-medium"><i class="fas fa-info-circle mr-2"></i>નોંધ: રવિવારે રજા રાખવામાં આવે છે</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Page 3: Inventory -->
-    <div id="page-inventory" class="page">
-      <div class="space-y-4 md:space-y-6">
-        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-lg border-2 border-blue-200 p-4 md:p-6">
-          <h2 class="text-xl md:text-2xl font-bold text-blue-800"><i class="fas fa-box mr-2"></i>સ્ટોક વ્યવસ્થાપન</h2>
-          <p class="text-gray-700 mt-2">ખાદ્ય વસ્તુઓની ઊઘડતી સિલક અને આવકનું વ્યવસ્થાપન</p>
-        </div>
-        <div id="inventory-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden">
-          <div class="bg-gray-50 p-4"><h3 class="text-lg font-bold text-gray-800">સ્ટોક સારાંશ</h3></div>
-          <div class="overflow-x-auto p-4">
-            <table class="w-full">
-              <thead><tr class="bg-gray-100"><th class="text-left p-3 font-bold text-gray-700">વસ્તુ</th><th class="text-right p-3 font-bold text-gray-700">ઊઘડતી સિલક (ગ્રા)</th><th class="text-right p-3 font-bold text-gray-700">આવક (ગ્રા)</th><th class="text-right p-3 font-bold text-gray-700">કુલ જથ્થો (ગ્રા)</th></tr></thead>
-              <tbody id="inventory-summary-table"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Page 4: Reports -->
-    <div id="page-reports" class="page">
-      <div class="space-y-4 md:space-y-6">
-        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg border-2 border-purple-200 p-4 md:p-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h2 class="text-xl md:text-2xl font-bold text-purple-800"><i class="fas fa-file-alt mr-2"></i>રિપોર્ટ્સ</h2>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="shareReport()" class="px-3 py-2 bg-white border-2 border-purple-300 rounded-lg hover:bg-purple-100 text-sm transition-colors"><i class="fas fa-share-alt mr-1"></i>શેર</button>
-              <button onclick="exportToCSV()" class="px-3 py-2 bg-white border-2 border-green-300 rounded-lg hover:bg-green-100 text-sm transition-colors"><i class="fas fa-file-excel mr-1"></i>Excel</button>
-              <button onclick="exportToPDF()" class="px-3 py-2 bg-white border-2 border-red-300 rounded-lg hover:bg-red-100 text-sm transition-colors"><i class="fas fa-file-pdf mr-1"></i>PDF</button>
-              <button onclick="window.print()" class="px-3 py-2 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-100 text-sm transition-colors"><i class="fas fa-print mr-1"></i>પ્રિન્ટ</button>
-            </div>
-          </div>
-          <p id="report-month-year" class="text-gray-700 mt-2"></p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-1">
-          <div class="grid grid-cols-2 gap-1">
-            <button onclick="showReportType('daily')" id="report-tab-daily" class="report-tab py-3 rounded-lg font-medium bg-purple-500 text-white"><i class="fas fa-calendar-day mr-2"></i>દૈનિક રિપોર્ટ</button>
-            <button onclick="showReportType('monthly')" id="report-tab-monthly" class="report-tab py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-chart-line mr-2"></i>માસિક સારાંશ</button>
-          </div>
-        </div>
-        <div id="report-daily" class="report-content">
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="overflow-x-auto p-2 md:p-4">
-              <div class="min-w-[1000px]">
-                <table class="report-table w-full">
-                  <thead>
-                    <tr>
-                      <th rowspan="2" class="text-left">તારીખ</th>
-                      <th rowspan="2">વાર</th>
-                      <th rowspan="2">લાભાર્થી</th>
-                      <th colspan="5" class="border-l wheat-header">ઘઉં</th>
-                      <th colspan="5" class="border-l rice-header">ચોખા</th>
-                      <th colspan="5" class="border-l oil-header">તેલ</th>
-                      <th colspan="5" class="border-l chana-header">ચણા</th>
-                      <th colspan="5" class="border-l dal-header">દાળ</th>
-                    </tr>
-                    <tr class="bg-purple-100 text-purple-800">
-                      <th class="border-l wheat-sub">ઊઘડતી</th><th class="wheat-sub">સવાર</th><th class="wheat-sub">બપોર</th><th class="wheat-sub">કુલ</th><th class="wheat-sub">બંધ</th>
-                      <th class="border-l rice-sub">ઊઘડતી</th><th class="rice-sub">સવાર</th><th class="rice-sub">બપોર</th><th class="rice-sub">કુલ</th><th class="rice-sub">બંધ</th>
-                      <th class="border-l oil-sub">ઊઘડતી</th><th class="oil-sub">સવાર</th><th class="oil-sub">બપોર</th><th class="oil-sub">કુલ</th><th class="oil-sub">બંધ</th>
-                      <th class="border-l chana-sub">ઊઘડતી</th><th class="chana-sub">સવાર</th><th class="chana-sub">બપોર</th><th class="chana-sub">કુલ</th><th class="chana-sub">બંધ</th>
-                      <th class="border-l dal-sub">ઊઘડતી</th><th class="dal-sub">સવાર</th><th class="dal-sub">બપોર</th><th class="dal-sub">કુલ</th><th class="dal-sub">બંધ</th>
-                    </tr>
-                  </thead>
-                  <tbody id="daily-report-table"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="report-monthly" class="report-content hidden">
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-4">
-              <h3 class="text-lg font-bold text-green-800">માસિક વપરાસ સારાંશ</h3>
-            </div>
-            <div class="p-4 md:p-6">
-              <div class="mb-6 overflow-x-auto">
-                <h4 class="text-md font-bold text-gray-800 mb-3"><i class="fas fa-boxes mr-2 text-green-600"></i>ઇન્વેન્ટરી વાઈઝ માસિક સમરી</h4>
-                <table class="monthly-summary-table">
-                  <thead>
-                    <tr>
-                      <th>ઇન્વેન્ટરી</th>
-                      <th>સવારની વપરાશ</th>
-                      <th>બપોરની વપરાશ</th>
-                      <th>કુલ વપરાશ</th>
-                      <th>બાકી બચત</th>
-                    </tr>
-                  </thead>
-                  <tbody id="monthly-inventory-summary-body"></tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan="3">કુલ ખાદ્ય સામગ્રી</td>
-                      <td id="monthly-grand-total-consumption">0 કિ.ગ્રા</td>
-                      <td id="monthly-grand-total-balance">0 કિ.ગ્રા</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-              <div id="monthly-summary-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-              <div class="mt-6 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
-                <h4 class="text-lg font-bold text-purple-800 mb-4">કુલ લાભાર્થી સંખ્યા</h4>
-                <div id="total-beneficiaries" class="text-4xl font-bold text-center text-purple-700"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer-fixed text-white py-3">
-    <div class="container mx-auto px-4">
-      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-xs md:text-sm">
-        <div class="flex items-center gap-2"><i class="fas fa-code text-orange-400"></i><span class="font-medium">Developed by Devendra Ramanuj</span></div>
-        <div class="hidden md:block text-gray-500">|</div>
-        <div class="flex items-center gap-4">
-          <a href="tel:9276505035" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-phone text-xs"></i><span>9276505035</span></a>
-          <a href="tel:9274505035" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-phone text-xs"></i><span>9274505035</span></a>
-          <a href="mailto:devenramanuj@outlook.com" class="flex items-center gap-1 hover:text-orange-400 transition-colors"><i class="fas fa-envelope text-xs"></i><span class="hidden sm:inline">devenramanuj@outlook.com</span></a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Modals -->
-  <div id="beneficiary-modal" class="modal">
-    <div class="modal-content">
-      <h3 class="text-xl font-bold text-orange-800 mb-4">લાભાર્થીની સંખ્યા દાખલ કરો</h3>
-      <div class="mb-4">
-        <p class="text-gray-600 mb-2">તારીખ: <span id="modal-date" class="font-bold text-orange-700"></span></p>
-        <label class="block text-sm font-medium text-gray-700 mb-2">લાભાર્થીની કુલ સંખ્યા</label>
-        <input type="number" id="beneficiary-input" class="w-full px-4 py-3 border-2 border-orange-200 rounded-lg text-lg focus:outline-none focus:border-orange-500" placeholder="ઉદા. 50" min="0">
-      </div>
-      <div class="flex gap-3">
-        <button onclick="closeModal()" class="flex-1 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">રદ કરો</button>
-        <button onclick="saveBeneficiary()" class="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">સાચવો</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="inventory-modal" class="modal">
-    <div class="modal-content">
-      <h3 class="text-xl font-bold text-blue-800 mb-4"><span id="inventory-item-name"></span> - સ્ટોક એડિટ કરો</h3>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">ઊઘડતી સિલક (ગ્રામમાં)</label>
-          <input type="number" id="opening-stock-input" class="w-full px-4 py-3 border-2 border-blue-200 rounded-lg text-lg focus:outline-none focus:border-blue-500" placeholder="ઉદા. 1000" min="0" step="0.01">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">આવક (ગ્રામમાં)</label>
-          <input type="number" id="income-input" class="w-full px-4 py-3 border-2 border-blue-200 rounded-lg text-lg focus:outline-none focus:border-blue-500" placeholder="ઉદા. 500" min="0" step="0.01">
-        </div>
-        <div class="bg-blue-50 p-3 rounded-lg">
-          <div class="text-sm text-gray-600">કુલ જથ્થો:</div>
-          <div id="total-stock-preview" class="text-2xl font-bold text-blue-700">0 ગ્રામ</div>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="closeInventoryModal()" class="flex-1 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"><i class="fas fa-times mr-2"></i>રદ કરો</button>
-          <button onclick="saveInventory()" class="flex-1 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"><i class="fas fa-save mr-2"></i>સાચવો</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ==========================================
-    // DATA & CONFIGURATION
-    // ==========================================
-    
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
-    let selectedDate = null;
-    let editingInventoryItem = null;
-    
-    let inventory = {
-      wheat: { name: 'ઘઉં', opening: 17000, income: 0, unit: 'g', icon: '🌾' },
-      rice: { name: 'ચોખા', opening: 9000, income: 0, unit: 'g', icon: '🍚' },
-      oil: { name: 'તેલ', opening: 5000, income: 0, unit: 'g', icon: '🛢️' },
-      chana: { name: 'ચણા', opening: 6000, income: 0, unit: 'g', icon: '🫘' },
-      dal: { name: 'દાળ', opening: 4000, income: 0, unit: 'g', icon: '🟡' }
-    };
-    
-    let calendarData = {};
-    
-    const menuRules = {
-      morning: {
-        wheat: { days: [1, 3, 4, 5, 6], amount: 30 },
-        rice: { days: [2], amount: 30 },
-        oil: { days: [1, 2, 3, 4, 5, 6], amount: 5 },
-        chana: { days: [2, 4, 5], amount: 20 },
-        dal: { days: [1, 3], amount: 20 }
-      },
-      afternoon: {
-        wheat: { days: [1, 2, 5], amount: 50 },
-        rice: { days: [3, 4, 6], amount: 50 },
-        oil: { days: [1, 2, 3, 4, 5, 6], amount: 8 }
-      }
-    };
-    
-    // ==========================================
-    // LOCAL STORAGE FUNCTIONS
-    // ==========================================
-    
-    function saveToLocalStorage() {
-      localStorage.setItem('snack_inventory', JSON.stringify(inventory));
-      localStorage.setItem('snack_calendar_data', JSON.stringify(calendarData));
-      localStorage.setItem('snack_current_month', currentMonth);
-      localStorage.setItem('snack_current_year', currentYear);
-    }
-    
-    function loadFromLocalStorage() {
-      const savedInventory = localStorage.getItem('snack_inventory');
-      const savedCalendarData = localStorage.getItem('snack_calendar_data');
-      const savedMonth = localStorage.getItem('snack_current_month');
-      const savedYear = localStorage.getItem('snack_current_year');
-      
-      if (savedInventory) {
-        inventory = JSON.parse(savedInventory);
-      }
-      
-      if (savedCalendarData) {
-        calendarData = JSON.parse(savedCalendarData);
-      }
-      
-      if (savedMonth !== null && savedYear !== null) {
-        currentMonth = parseInt(savedMonth);
-        currentYear = parseInt(savedYear);
-      }
-    }
-    
-    // ==========================================
-    // UTILITY FUNCTIONS
-    // ==========================================
-    
-    function getMonthName(month) {
-      const names = ['જાન્યુઆરી','ફેબ્રુઆરી','માર્ચ','એપ્રિલ','મે','જૂન','જુલાઈ','ઓગસ્ટ','સપ્ટેમ્બર','ઓક્ટોબર','નવેમ્બર','ડિસેમ્બર'];
-      return names[month];
-    }
-    
-    function getDayName(day) {
-      const names = ['રવિ','સોમ','મંગળ','બુધ','ગુરુ','શુક્ર','શનિ'];
-      return names[day];
-    }
-    
-    function formatDate(date) {
-      return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
-    }
-    
-    function getKey(year, month, day) {
-      return `snack_${year}_${month}_${day}`;
-    }
-    
-    // ==========================================
-    // CALENDAR FUNCTIONS
-    // ==========================================
-    
-    function renderCalendar() {
-      const grid = document.getElementById('calendar-grid');
-      const my = document.getElementById('current-month-year');
-      my.textContent = `${getMonthName(currentMonth)} ${currentYear}`;
-      
-      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      
-      grid.innerHTML = '';
-      
-      for(let i = 0; i < firstDay; i++) {
-        grid.innerHTML += '<div class="calendar-day bg-gray-50 rounded-lg"></div>';
-      }
-      
-      for(let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(currentYear, currentMonth, day);
-        const dow = date.getDay();
-        const isSun = dow === 0;
-        const key = getKey(currentYear, currentMonth, day);
-        const data = calendarData[key];
-        
-        const cell = document.createElement('div');
-        cell.className = `calendar-day rounded-lg border-2 p-2 flex flex-col items-center justify-center min-h-[80px] ${isSun ? 'sunday' : 'bg-white border-orange-200 hover:border-orange-400 cursor-pointer'} ${data ? 'has-data' : ''}`;
-        
-        if(!isSun) cell.onclick = () => openModal(date);
-        
-        cell.innerHTML = `
-          <span class="text-lg font-bold ${isSun ? 'text-red-600' : 'text-gray-800'}">${day}</span>
-          ${data ? `<span class="text-xs text-green-700 mt-1">${data} બાળકો</span>` : ''}
-          ${isSun ? '<span class="text-xs text-red-500">રજા</span>' : ''}
-        `;
-        grid.appendChild(cell);
-      }
-    }
-    
-    function changeMonth(delta) {
-      currentMonth += delta;
-      if(currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      } else if(currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-      saveToLocalStorage();
-      renderCalendar();
-      renderDailyReport();
-      renderMonthlySummary();
-    }
-    
-    // ==========================================
-    // MODAL FUNCTIONS
-    // ==========================================
-    
-    function openModal(date) {
-      selectedDate = date;
-      document.getElementById('modal-date').textContent = formatDate(date);
-      document.getElementById('beneficiary-input').value = calendarData[getKey(date.getFullYear(), date.getMonth(), date.getDate())] || '';
-      document.getElementById('beneficiary-modal').classList.add('show');
-    }
-    
-    function closeModal() {
-      document.getElementById('beneficiary-modal').classList.remove('show');
-      selectedDate = null;
-    }
-    
-    function saveBeneficiary() {
-      const count = parseInt(document.getElementById('beneficiary-input').value) || 0;
-      if(selectedDate) {
-        const key = getKey(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-        if(count > 0) {
-          calendarData[key] = count;
-        } else {
-          delete calendarData[key];
-        }
-        saveToLocalStorage();
-        renderCalendar();
-        renderDailyReport();
-        renderMonthlySummary();
-      }
-      closeModal();
-    }
-    
-    // ==========================================
-    // INVENTORY FUNCTIONS
-    // ==========================================
-    
-    function renderInventory() {
-      const cards = document.getElementById('inventory-cards');
-      const table = document.getElementById('inventory-summary-table');
-      cards.innerHTML = '';
-      table.innerHTML = '';
-      
-      Object.keys(inventory).forEach(key => {
-        const item = inventory[key];
-        const total = item.opening + item.income;
-        
-        cards.innerHTML += `
-          <div class="inventory-card rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow" onclick="openInventoryModal('${key}')">
-            <div class="flex justify-between mb-3">
-              <span class="text-3xl">${item.icon}</span>
-              <i class="fas fa-edit text-blue-500"></i>
-            </div>
-            <h3 class="text-lg font-bold text-gray-800">${item.name}</h3>
-            <div class="mt-2 space-y-1 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">ઊઘડતી:</span>
-                <span>${item.opening} ${item.unit}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">આવક:</span>
-                <span class="text-green-600">+${item.income} ${item.unit}</span>
-              </div>
-              <div class="flex justify-between border-t pt-2 mt-2">
-                <span class="font-bold">કુલ:</span>
-                <span class="font-bold text-blue-700">${total} ${item.unit}</span>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        table.innerHTML += `
-          <tr class="border-b border-gray-200 hover:bg-gray-50">
-            <td class="p-3 font-medium">${item.icon} ${item.name}</td>
-            <td class="p-3 text-right">${item.opening}</td>
-            <td class="p-3 text-right text-green-600">${item.income}</td>
-            <td class="p-3 text-right font-bold text-blue-700">${total}</td>
-          </tr>
-        `;
-      });
-    }
-    
-    function openInventoryModal(key) {
-      editingInventoryItem = key;
-      const item = inventory[key];
-      document.getElementById('inventory-item-name').textContent = item.name;
-      document.getElementById('opening-stock-input').value = item.opening;
-      document.getElementById('income-input').value = item.income;
-      updateStockPreview();
-      document.getElementById('inventory-modal').classList.add('show');
-    }
-    
-    function closeInventoryModal() {
-      document.getElementById('inventory-modal').classList.remove('show');
-      editingInventoryItem = null;
-    }
-    
-    function updateStockPreview() {
-      const opening = parseFloat(document.getElementById('opening-stock-input').value) || 0;
-      const income = parseFloat(document.getElementById('income-input').value) || 0;
-      document.getElementById('total-stock-preview').textContent = `${opening + income} ગ્રામ`;
-    }
-    
-    function saveInventory() {
-      if(editingInventoryItem) {
-        inventory[editingInventoryItem].opening = parseFloat(document.getElementById('opening-stock-input').value) || 0;
-        inventory[editingInventoryItem].income = parseFloat(document.getElementById('income-input').value) || 0;
-        saveToLocalStorage();
-        renderInventory();
-        renderDailyReport();
-        renderMonthlySummary();
-      }
-      closeInventoryModal();
-    }
-    
-    // ==========================================
-    // MENU FUNCTIONS
-    // ==========================================
-    
-    function renderMenu() {
-      const morningBody = document.getElementById('morning-menu-table');
-      const afternoonBody = document.getElementById('afternoon-menu-table');
-      
-      const items = [
-        {key: 'wheat', name: '🌾 ઘઉં', color: 'text-amber-700'},
-        {key: 'rice', name: '🍚 ચોખા', color: 'text-blue-700'},
-        {key: 'oil', name: '🛢️ તેલ', color: 'text-yellow-700'},
-        {key: 'chana', name: '🫘 ચણા', color: 'text-green-700'},
-        {key: 'dal', name: '🟡 દાળ', color: 'text-orange-700'}
-      ];
-      
-      morningBody.innerHTML = items.map(item => {
-        const rule = menuRules.morning[item.key];
-        if(!rule) return '';
-        return `
-          <tr class="border-b border-amber-100 hover:bg-amber-50">
-            <td class="p-2 font-medium ${item.color}">${item.name}</td>
-            ${[1,2,3,4,5,6,0].map(d => `
-              <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : ''}">
-                ${rule.days.includes(d) ? `<span class="font-bold text-amber-700">${rule.amount}g</span>` : '<span class="text-gray-300">-</span>'}
-              </td>
-            `).join('')}
-          </tr>
-        `;
-      }).join('');
-      
-      afternoonBody.innerHTML = items.map(item => {
-        const rule = menuRules.afternoon[item.key];
-        if(!rule) {
-          return `
-            <tr class="border-b border-orange-100 hover:bg-orange-50">
-              <td class="p-2 font-medium ${item.color}">${item.name}</td>
-              ${[1,2,3,4,5,6,0].map(d => `
-                <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : 'text-gray-300'}">-</td>
-              `).join('')}
-            </tr>
-          `;
-        }
-        return `
-          <tr class="border-b border-orange-100 hover:bg-orange-50">
-            <td class="p-2 font-medium ${item.color}">${item.name}</td>
-            ${[1,2,3,4,5,6,0].map(d => `
-              <td class="p-2 text-center ${d === 0 ? 'bg-red-50 text-red-400' : ''}">
-                ${rule.days.includes(d) ? `<span class="font-bold text-orange-700">${rule.amount}g</span>` : '<span class="text-gray-300">-</span>'}
-              </td>
-            `).join('')}
-          </tr>
-        `;
-      }).join('');
-    }
-    
-    // ==========================================
-    // DAILY REPORT WITH TOTALS
-    // ==========================================
-    
-    function renderDailyReport() {
-      const tbody = document.getElementById('daily-report-table');
-      tbody.innerHTML = '';
-      
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      
-      // Monthly totals
-      const mt = {
-        beneficiaries: 0,
-        wheat: {morning: 0, afternoon: 0, total: 0},
-        rice: {morning: 0, afternoon: 0, total: 0},
-        oil: {morning: 0, afternoon: 0, total: 0},
-        chana: {morning: 0, afternoon: 0, total: 0},
-        dal: {morning: 0, afternoon: 0, total: 0}
-      };
-      
-      let rb = {
-        wheat: inventory.wheat.opening + inventory.wheat.income,
-        rice: inventory.rice.opening + inventory.rice.income,
-        oil: inventory.oil.opening + inventory.oil.income,
-        chana: inventory.chana.opening + inventory.chana.income,
-        dal: inventory.dal.opening + inventory.dal.income
-      };
-      
-      for(let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(currentYear, currentMonth, day);
-        const dow = date.getDay();
-        const isSun = dow === 0;
-        const key = getKey(currentYear, currentMonth, day);
-        const ben = calendarData[key] || 0;
-        
-        const row = document.createElement('tr');
-        row.className = isSun ? 'sunday-cell' : (ben > 0 ? 'consumption-positive' : 'consumption-zero');
-        
-        const c = {
-          wheat: {m: 0, a: 0},
-          rice: {m: 0, a: 0},
-          oil: {m: 0, a: 0},
-          chana: {m: 0, a: 0},
-          dal: {m: 0, a: 0}
-        };
-        
-        if(!isSun && ben > 0) {
-          // Morning
-          if(menuRules.morning.wheat.days.includes(dow)) c.wheat.m = menuRules.morning.wheat.amount * ben;
-          if(menuRules.morning.rice.days.includes(dow)) c.rice.m = menuRules.morning.rice.amount * ben;
-          if(menuRules.morning.oil.days.includes(dow)) c.oil.m = menuRules.morning.oil.amount * ben;
-          if(menuRules.morning.chana.days.includes(dow)) c.chana.m = menuRules.morning.chana.amount * ben;
-          if(menuRules.morning.dal.days.includes(dow)) c.dal.m = menuRules.morning.dal.amount * ben;
-          
-          // Afternoon
-          if(menuRules.afternoon.wheat.days.includes(dow)) c.wheat.a = menuRules.afternoon.wheat.amount * ben;
-          if(menuRules.afternoon.rice.days.includes(dow)) c.rice.a = menuRules.afternoon.rice.amount * ben;
-          if(menuRules.afternoon.oil.days.includes(dow)) c.oil.a = menuRules.afternoon.oil.amount * ben;
-          
-          // Add to totals
-          mt.beneficiaries += ben;
-          mt.wheat.morning += c.wheat.m;
-          mt.wheat.afternoon += c.wheat.a;
-          mt.wheat.total += (c.wheat.m + c.wheat.a);
-          mt.rice.morning += c.rice.m;
-          mt.rice.afternoon += c.rice.a;
-          mt.rice.total += (c.rice.m + c.rice.a);
-          mt.oil.morning += c.oil.m;
-          mt.oil.afternoon += c.oil.a;
-          mt.oil.total += (c.oil.m + c.oil.a);
-          mt.chana.morning += c.chana.m;
-          mt.chana.total += c.chana.m;
-          mt.dal.morning += c.dal.m;
-          mt.dal.total += c.dal.m;
-        }
-        
-        if(!isSun && ben > 0) {
-          rb.wheat -= (c.wheat.m + c.wheat.a);
-          rb.rice -= (c.rice.m + c.rice.a);
-          rb.oil -= (c.oil.m + c.oil.a);
-          rb.chana -= c.chana.m;
-          rb.dal -= c.dal.m;
-        }
-        
-        row.innerHTML = `
-          <td class="border p-1 whitespace-nowrap">${formatDate(date)}</td>
-          <td class="border p-1 text-center">${getDayName(dow)}</td>
-          <td class="border p-1 text-center font-bold">${ben || '-'}</td>
-          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.wheat + c.wheat.m + c.wheat.a)}</td>
-          <td class="border p-1 text-right">${c.wheat.m || '-'}</td>
-          <td class="border p-1 text-right">${c.wheat.a || '-'}</td>
-          <td class="border p-1 text-right font-bold">${(c.wheat.m + c.wheat.a) || '-'}</td>
-          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.wheat)}</td>
-          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.rice + c.rice.m + c.rice.a)}</td>
-          <td class="border p-1 text-right">${c.rice.m || '-'}</td>
-          <td class="border p-1 text-right">${c.rice.a || '-'}</td>
-          <td class="border p-1 text-right font-bold">${(c.rice.m + c.rice.a) || '-'}</td>
-          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.rice)}</td>
-          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.oil + c.oil.m + c.oil.a)}</td>
-          <td class="border p-1 text-right">${c.oil.m || '-'}</td>
-          <td class="border p-1 text-right">${c.oil.a || '-'}</td>
-          <td class="border p-1 text-right font-bold">${(c.oil.m + c.oil.a) || '-'}</td>
-          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.oil)}</td>
-          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.chana + c.chana.m)}</td>
-          <td class="border p-1 text-right">${c.chana.m || '-'}</td>
-          <td class="border p-1 text-right">${c.chana.a || '-'}</td>
-          <td class="border p-1 text-right font-bold">${c.chana.m || '-'}</td>
-          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.chana)}</td>
-          <td class="border-l border p-1 text-right">${isSun ? '-' : Math.round(rb.dal + c.dal.m)}</td>
-          <td class="border p-1 text-right">${c.dal.m || '-'}</td>
-          <td class="border p-1 text-right">${c.dal.a || '-'}</td>
-          <td class="border p-1 text-right font-bold">${c.dal.m || '-'}</td>
-          <td class="border p-1 text-right">${isSun ? '-' : Math.round(rb.dal)}</td>
-        `;
-        tbody.appendChild(row);
-      }
-      
-      // TOTAL ROW
-      const totalRow = document.createElement('tr');
-      totalRow.className = 'total-row';
-      totalRow.style.cssText = 'background:#fef3c7;font-weight:bold;border-top:3px solid #f59e0b;';
-      totalRow.innerHTML = `
-        <td class="border p-2" colspan="2"><strong>🧮 કુલ ટોટલ</strong></td>
-        <td class="border p-2 text-center"><strong>${mt.beneficiaries.toLocaleString()}</strong></td>
-        <td class="border-l border p-2">-</td>
-        <td class="border p-2 text-right"><strong>${mt.wheat.morning.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right"><strong>${mt.wheat.afternoon.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.wheat.total.toLocaleString()}</strong></td>
-        <td class="border p-2">-</td>
-        <td class="border-l border p-2">-</td>
-        <td class="border p-2 text-right"><strong>${mt.rice.morning.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right"><strong>${mt.rice.afternoon.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.rice.total.toLocaleString()}</strong></td>
-        <td class="border p-2">-</td>
-        <td class="border-l border p-2">-</td>
-        <td class="border p-2 text-right"><strong>${mt.oil.morning.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right"><strong>${mt.oil.afternoon.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.oil.total.toLocaleString()}</strong></td>
-        <td class="border p-2">-</td>
-        <td class="border-l border p-2">-</td>
-        <td class="border p-2 text-right"><strong>${mt.chana.morning.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right"><strong>${mt.chana.afternoon.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.chana.total.toLocaleString()}</strong></td>
-        <td class="border p-2">-</td>
-        <td class="border-l border p-2">-</td>
-        <td class="border p-2 text-right"><strong>${mt.dal.morning.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right"><strong>${mt.dal.afternoon.toLocaleString()}</strong></td>
-        <td class="border p-2 text-right" style="background:#dcfce7;"><strong>${mt.dal.total.toLocaleString()}</strong></td>
-        <td class="border p-2">-</td>
-      `;
-      tbody.appendChild(totalRow);
-    }
-    
-    // ==========================================
-    // MONTHLY SUMMARY
-    // ==========================================
-    
-    function renderMonthlySummary() {
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      
-      const summary = {
-        wheat: {morning: 0, afternoon: 0, opening: inventory.wheat.opening + inventory.wheat.income},
-        rice: {morning: 0, afternoon: 0, opening: inventory.rice.opening + inventory.rice.income},
-        oil: {morning: 0, afternoon: 0, opening: inventory.oil.opening + inventory.oil.income},
-        chana: {morning: 0, afternoon: 0, opening: inventory.chana.opening + inventory.chana.income},
-        dal: {morning: 0, afternoon: 0, opening: inventory.dal.opening + inventory.dal.income}
-      };
-      
-      let totalBeneficiaries = 0;
-      let workingDays = 0;
-      
-      for(let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(currentYear, currentMonth, day);
-        const dow = date.getDay();
-        const isSun = dow === 0;
-        const key = getKey(currentYear, currentMonth, day);
-        const ben = calendarData[key] || 0;
-        
-        if(!isSun && ben > 0) {
-          workingDays++;
-          totalBeneficiaries += ben;
-          
-          if(menuRules.morning.wheat.days.includes(dow)) summary.wheat.morning += menuRules.morning.wheat.amount * ben;
-          if(menuRules.morning.rice.days.includes(dow)) summary.rice.morning += menuRules.morning.rice.amount * ben;
-          if(menuRules.morning.oil.days.includes(dow)) summary.oil.morning += menuRules.morning.oil.amount * ben;
-          if(menuRules.morning.chana.days.includes(dow)) summary.chana.morning += menuRules.morning.chana.amount * ben;
-          if(menuRules.morning.dal.days.includes(dow)) summary.dal.morning += menuRules.morning.dal.amount * ben;
-          
-          if(menuRules.afternoon.wheat.days.includes(dow)) summary.wheat.afternoon += menuRules.afternoon.wheat.amount * ben;
-          if(menuRules.afternoon.rice.days.includes(dow)) summary.rice.afternoon += menuRules.afternoon.rice.amount * ben;
-          if(menuRules.afternoon.oil.days.includes(dow)) summary.oil.afternoon += menuRules.afternoon.oil.amount * ben;
-        }
-      }
-      
-      const items = [
-        {key: 'wheat', name: '🌾 ઘઉં'},
-        {key: 'rice', name: '🍚 ચોખા'},
-        {key: 'oil', name: '🛢️ તેલ'},
-        {key: 'chana', name: '🫘 ચણા'},
-        {key: 'dal', name: '🟡 દાળ'}
-      ];
-      
-      let grandTotalConsumption = 0;
-      let grandTotalBalance = 0;
-      
-      document.getElementById('monthly-inventory-summary-body').innerHTML = items.map(item => {
-        const totalConsumption = summary[item.key].morning + summary[item.key].afternoon;
-        const balance = summary[item.key].opening - totalConsumption;
-        grandTotalConsumption += totalConsumption;
-        grandTotalBalance += balance;
-        
-        return `
-          <tr>
-            <td class="item-name">${item.name}</td>
-            <td>${summary[item.key].morning.toLocaleString()} ગ્રા</td>
-            <td>${summary[item.key].afternoon.toLocaleString()} ગ્રા</td>
-            <td class="total-usage">${(totalConsumption/1000).toFixed(2)} કિ.ગ્રા</td>
-            <td class="balance ${balance < 1000 ? 'low' : 'good'}">${(balance/1000).toFixed(2)} કિ.ગ્રા</td>
-          </tr>
-        `;
-      }).join('');
-      
-      document.getElementById('monthly-grand-total-consumption').textContent = `${(grandTotalConsumption/1000).toFixed(2)} કિ.ગ્રા`;
-      document.getElementById('monthly-grand-total-balance').textContent = `${(grandTotalBalance/1000).toFixed(2)} કિ.ગ્રા`;
-      
-      document.getElementById('monthly-summary-cards').innerHTML = `
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
-          <h4 class="text-blue-800 font-bold mb-2">કાર્યકારી દિવસો</h4>
-          <p class="text-3xl font-bold text-blue-700">${workingDays}</p>
-          <p class="text-sm text-blue-600">રવિવાર સિવાય</p>
-        </div>
-        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
-          <h4 class="text-green-800 font-bold mb-2">કુલ લાભાર્થી-દિવસ</h4>
-          <p class="text-3xl font-bold text-green-700">${totalBeneficiaries.toLocaleString()}</p>
-          <p class="text-sm text-green-600">બાળકો × દિવસો</p>
-        </div>
-      `;
-      
-      document.getElementById('total-beneficiaries').textContent = `${Math.round(totalBeneficiaries / (workingDays || 1))} સરેરાશ બાળકો/દિવસ`;
-      document.getElementById('report-month-year').textContent = `${getMonthName(currentMonth)} ${currentYear} માસનો રિપોર્ટ`;
-    }
-    
-    // ==========================================
-    // NAVIGATION
-    // ==========================================
-    
-    function showPage(pageName) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(`page-${pageName}`).classList.add('active');
-      
-      document.querySelectorAll('.tab-btn').forEach(t => {
-        t.className = 'tab-btn flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium text-gray-600 hover:bg-gray-100';
-      });
-      document.getElementById(`tab-${pageName}`).className = `tab-btn tab-active-${pageName} flex flex-col items-center gap-1 py-2 md:py-3 rounded-lg transition-all text-xs md:text-sm font-medium`;
-      
-      if(pageName === 'inventory') renderInventory();
-      if(pageName === 'reports') {
-        renderDailyReport();
-        renderMonthlySummary();
-      }
-      if(pageName === 'menu') renderMenu();
-    }
-    
-    function showReportType(type) {
-      document.querySelectorAll('.report-content').forEach(r => r.classList.add('hidden'));
-      document.getElementById(`report-${type}`).classList.remove('hidden');
-      
-      document.querySelectorAll('.report-tab').forEach(t => {
-        t.className = 'report-tab py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100';
-      });
-      document.getElementById(`report-tab-${type}`).className = 'report-tab py-3 rounded-lg font-medium bg-purple-500 text-white';
-      
-      if(type === 'monthly') renderMonthlySummary();
-    }
-    
-        // ==========================================
-    // EXPORTS
-    // ==========================================
-    
-    function shareReport() {
-      const text = `બાળકોના નાસ્તાનું વ્યવસ્થાપન - ${getMonthName(currentMonth)} ${currentYear}\nવિગતવાર રિપોર્ટ જુઓ.`;
-      if(navigator.share) {
-        navigator.share({title: 'નાસ્તાનું વ્યવસ્થાપન રિપોર્ટ', text: text});
-      } else {
-        alert('WhatsApp ખોલો:\n\n' + text);
-      }
-    }
-    
-    function exportToCSV() {
-      let csv = 'તારીખ,વાર,લાભાર્થી,ઘઉં-સવાર,ઘઉં-બપોર,ચોખા-સવાર,ચોખા-બપોર,તેલ-સવાર,તેલ-બપોર,ચણા-સવાર,દાળ-સવાર\n';
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      
-      for(let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(currentYear, currentMonth, day);
-        const dow = date.getDay();
-        const key = getKey(currentYear, currentMonth, day);
-        const ben = calendarData[key] || 0;
-        
-        let row = `${formatDate(date)},${getDayName(dow)},${ben}`;
-        if(!ben || dow === 0) {
-          row += ',0,0,0,0,0,0,0,0';
-        } else {
-          const wm = menuRules.morning.wheat.days.includes(dow) ? menuRules.morning.wheat.amount * ben : 0;
-          const wa = menuRules.afternoon.wheat.days.includes(dow) ? menuRules.afternoon.wheat.amount * ben : 0;
-          const rm = menuRules.morning.rice.days.includes(dow) ? menuRules.morning.rice.amount * ben : 0;
-          const ra = menuRules.afternoon.rice.days.includes(dow) ? menuRules.afternoon.rice.amount * ben : 0;
-          const om = menuRules.morning.oil.days.includes(dow) ? menuRules.morning.oil.amount * ben : 0;
-          const oa = menuRules.afternoon.oil.days.includes(dow) ? menuRules.afternoon.oil.amount * ben : 0;
-          const cm = menuRules.morning.chana.days.includes(dow) ? menuRules.morning.chana.amount * ben : 0;
-          const dm = menuRules.morning.dal.days.includes(dow) ? menuRules.morning.dal.amount * ben : 0;
-          row += `,${wm},${wa},${rm},${ra},${om},${oa},${cm},${dm}`;
-        }
-        csv += row + '\n';
-      }
-      
-      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `નાસ્તા_રિપોર્ટ_${currentYear}_${currentMonth+1}.csv`;
-      link.click();
-    }
-    
-    function exportToPDF() {
-      window.print();
-    }
-    
-    // ==========================================
-    // INITIALIZATION
-    // ==========================================
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load saved data from localStorage
-      loadFromLocalStorage();
-      
-      // Add event listeners for stock preview
-      document.getElementById('opening-stock-input').addEventListener('input', updateStockPreview);
-      document.getElementById('income-input').addEventListener('input', updateStockPreview);
-      
-      // Initial render
-      renderCalendar();
-      renderMenu();
-      renderInventory();
-      renderDailyReport();
-      renderMonthlySummary();
+// ===================================================================
+// CALCULATIONS
+// ===================================================================
+function calcMonthlyConsumption() {
+  const benefData = getBenefData();
+  const consumed = { wheat30:0, wheat50:0, rice30:0, rice50:0, oil5:0, oil8:0, chana:0, dal:0, chanadal:0 };
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentYear, currentMonth, d);
+    const dow = date.getDay();
+    const benef = parseInt(benefData[d] || 0);
+    if (benef <= 0 || dow === 0) continue;
+    const rules = getDayRules(dow);
+    rules.forEach(r => {
+      if (r.key==='wheat' && r.grams===30) consumed.wheat30 += r.grams * benef;
+      if (r.key==='wheat' && r.grams===50) consumed.wheat50 += r.grams * benef;
+      if (r.key==='rice' && r.grams===30) consumed.rice30 += r.grams * benef;
+      if (r.key==='rice' && r.grams===50) consumed.rice50 += r.grams * benef;
+      if (r.key==='oil' && r.grams===5) consumed.oil5 += r.grams * benef;
+      if (r.key==='oil' && r.grams===8) consumed.oil8 += r.grams * benef;
+      if (r.key==='chana') consumed.chana += r.grams * benef;
+      if (r.key==='dal') consumed.dal += r.grams * benef;
+      if (r.key==='chanadal') consumed.chanadal += r.grams * benef;
     });
-  </script>
+  }
+  return {
+    wheat: (consumed.wheat30 + consumed.wheat50) / 1000,
+    wheat30g: consumed.wheat30 / 1000, wheat50g: consumed.wheat50 / 1000,
+    rice: (consumed.rice30 + consumed.rice50) / 1000,
+    rice30g: consumed.rice30 / 1000, rice50g: consumed.rice50 / 1000,
+    oil: (consumed.oil5 + consumed.oil8) / 1000,
+    oil5g: consumed.oil5 / 1000, oil8g: consumed.oil8 / 1000,
+    chana: consumed.chana / 1000,
+    dal: consumed.dal / 1000,
+    chanadal: consumed.chanadal / 1000
+  };
+}
+
+function getTotalBeneficiaries() {
+  const benefData = getBenefData();
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  let total = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(currentYear, currentMonth, d).getDay();
+    if (dow !== 0) total += parseInt(benefData[d] || 0);
+  }
+  return total;
+}
+
+// ===================================================================
+// PAGE 1: STOCK MANAGEMENT
+// ===================================================================
+function buildStockPage() {
+  const consumed = calcMonthlyConsumption();
+  const stockData = getStockData();
+  const monthLabel = GU_MONTHS[currentMonth] + ' ' + currentYear;
+  document.getElementById('stockMonthLabel').textContent = monthLabel;
+  document.getElementById('totalBeneficiaries').textContent = getTotalBeneficiaries();
+
+  const grid = document.getElementById('stockGrid');
+  grid.innerHTML = '';
+
+  const stockInfo = [
+    { key:'wheat', consumed: consumed.wheat },
+    { key:'rice',  consumed: consumed.rice },
+    { key:'oil',   consumed: consumed.oil },
+    { key:'chana', consumed: consumed.chana },
+    { key:'dal',   consumed: consumed.dal },
+    { key:'chanadal', consumed: consumed.chanadal }
+  ];
+
+  stockInfo.forEach(info => {
+    const item = ITEMS.find(i => i.key === info.key);
+    const opening = parseFloat(stockData[info.key+'_opening'] || 0);
+    const income = parseFloat(stockData[info.key+'_income'] || 0);
+    const consumption = parseFloat(info.consumed.toFixed(3));
+    const closing = Math.max(0, opening + income - consumption);
+    const closingColor = closing < 5 ? '#c62828' : closing < 20 ? '#f57c00' : '#2e7d32';
+
+    const card = document.createElement('div');
+    card.className = `stock-card ${item.theme}`;
+    card.innerHTML = `
+      <div class="stock-card-header">
+        <div class="card-header-left">
+          <span class="card-icon">${item.icon}</span>
+          <div><div class="card-name">${item.name}</div><div class="card-name-en">${item.nameEn}</div></div>
+        </div>
+        <div class="card-closing-badge" style="background:${closingColor}20;border-color:${closingColor}60;">
+          <span style="color:white;">⚖️ ${closing.toFixed(2)} kg</span>
+        </div>
+      </div>
+      <div class="stock-card-body">
+        <div class="stock-field">
+          <div class="field-label">📂 ઊઘડતી સિલક</div>
+          <div class="editable-field">
+            <input type="number" class="editable-input" value="${opening}"
+              id="input_${info.key}_opening"
+              onchange="updateStock('${info.key}', 'opening', this.value)" step="0.001" min="0" placeholder="0">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+        <div class="stock-field">
+          <div class="field-label">📥 આવક</div>
+          <div class="editable-field">
+            <input type="number" class="editable-input" value="${income}"
+              id="input_${info.key}_income"
+              onchange="updateStock('${info.key}', 'income', this.value)" step="0.001" min="0" placeholder="0">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+        <div class="stock-field">
+          <div class="field-label" style="color:#c62828;">🔥 વપરાશ</div>
+          <div class="field-value" style="color:#c62828;">${consumption.toFixed(3)} <span class="field-unit">kg</span></div>
+        </div>
+        <div class="stock-field">
+          <div class="field-label" style="color:${closingColor};">📦 બંધ સિલક</div>
+          <div class="field-value" style="color:${closingColor};font-size:18px;">${closing.toFixed(3)} <span class="field-unit">kg</span></div>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ===================================================================
+// CRITICAL FIX: UPDATE STOCK & REFRESH REPORT
+// ===================================================================
+function updateStock(itemKey, field, value) {
+  const stockData = getStockData();
+  stockData[itemKey + '_' + field] = parseFloat(value) || 0;
+  saveStockData(stockData);
+  
+  buildStockPage();
+  
+  // --- FIX: આવક અપડેટ થાય તે સાથે જ રિપોર્ટ પણ અપડેટ થાય ---
+  buildReport(); 
+  
+  showSnackbar('✅ ' + (field==='opening'?'ઊઘડતી સિલક':'આવક') + ' અપડેટ થઈ');
+}
+
+function refreshStock() { buildStockPage(); buildReport(); showSnackbar('🔄 સ્ટોક અપડેટ થયો'); }
+function toggleRules() {
+  const body = document.getElementById('rulesBody');
+  const arrow = document.getElementById('rulesArrow');
+  if (body.style.display === 'none') { body.style.display = 'grid'; arrow.textContent = '▲'; }
+  else { body.style.display = 'none'; arrow.textContent = '▼'; }
+}
+
+// ===================================================================
+// PAGE 2: CALENDAR
+// ===================================================================
+const GU_MONTHS = ['જાન્યુઆરી','ફેબ્રુઆરી','માર્ચ','એપ્રિલ','મે','જૂન','જુલાઈ','ઑગસ્ટ','સપ્ટેમ્બર','ઑક્ટોબર','નવેમ્બર','ડિસેમ્બર'];
+const GU_DAYS = ['રવિ','સોમ','મંગળ','બુધ','ગુરુ','શુક્ર','શનિ'];
+
+function getMonthGujarati(m) { return GU_MONTHS[m]; }
+
+function buildCalendar() {
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const today = new Date();
+  const benefData = getBenefData();
+
+  document.getElementById('calMonthTitle').textContent = GU_MONTHS[currentMonth];
+  document.getElementById('calYearTitle').textContent = currentYear;
+  document.getElementById('calSummaryMonth').textContent = GU_MONTHS[currentMonth] + ' ' + currentYear;
+
+  const container = document.getElementById('calendarDays');
+  container.innerHTML = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    container.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentYear, currentMonth, d);
+    const dow = date.getDay();
+    const isToday = (today.getDate()===d && today.getMonth()===currentMonth && today.getFullYear()===currentYear);
+    const isSunday = dow === 0;
+    const isSaturday = dow === 6;
+    const benef = parseInt(benefData[d] || 0);
+    const hasData = benef > 0;
+
+    const cell = document.createElement('div');
+    let cellClass = 'cal-day';
+    if (isSunday) cellClass += ' sunday';
+    else if (isSaturday) cellClass += ' saturday';
+    if (isToday) cellClass += ' today';
+    if (hasData) cellClass += ' has-data';
+    cell.className = cellClass;
+
+    if (isSunday) {
+      cell.innerHTML = `<div class="cal-date-num">${d}</div><div class="cal-holiday-label">🔴 રજા</div>`;
+    } else {
+      const rules = getDayRules(dow);
+      const dayItems = [...new Set(rules.map(r => r.key))];
+      const dayHint = dayItems.map(k => ITEMS.find(i=>i.key===k)?.icon || '').join('');
+      cell.innerHTML = `<div class="cal-date-num">${d}</div>${benef > 0 ? `<div class="cal-beneficiary">${benef}</div><div class="cal-label">વ્ય.</div>` : ''}<div class="cal-day-info">${dayHint}</div>`;
+      cell.onclick = () => openBenefModal(d, dow, benef);
+    }
+    container.appendChild(cell);
+  }
+
+  let workDays = 0, totalBenef = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(currentYear, currentMonth, d).getDay();
+    if (dow !== 0) {
+      workDays++;
+      totalBenef += parseInt(benefData[d] || 0);
+    }
+  }
+  document.getElementById('sumTotalDays').textContent = daysInMonth;
+  document.getElementById('sumWorkDays').textContent = workDays;
+  document.getElementById('sumBenefTotal').textContent = totalBenef;
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  buildCalendar();
+  buildStockPage();
+  buildReport();
+}
+
+// ===================================================================
+// MODAL: Beneficiary Entry
+// ===================================================================
+function openBenefModal(day, dow, currentVal) {
+  editingDate = day;
+  const dateStr = `${day} ${GU_MONTHS[currentMonth]} ${currentYear} (${GU_DAYS[dow]})`;
+  document.getElementById('modalDateLabel').textContent = dateStr;
+  document.getElementById('benefInput').value = currentVal || '';
+
+  const preview = document.getElementById('dayConsumptionPreview');
+  const rules = getDayRules(dow);
+  if (rules.length > 0) {
+    let previewHtml = '<strong>આ દિવસ ના નિયમ:</strong><br>';
+    rules.forEach(r => {
+      previewHtml += `${ITEMS.find(i=>i.key===r.key)?.icon} ${ITEMS.find(i=>i.key===r.key)?.name} - ${r.grams}g/વ્ય. &nbsp;`;
+    });
+    preview.innerHTML = previewHtml;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+
+  document.getElementById('benefModal').classList.add('show');
+  setTimeout(() => document.getElementById('benefInput').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('benefModal').classList.remove('show');
+  editingDate = null;
+}
+
+function saveBeneficiary() {
+  if (editingDate === null) return;
+  const val = parseInt(document.getElementById('benefInput').value) || 0;
+  const benefData = getBenefData();
+  if (val > 0) benefData[editingDate] = val;
+  else delete benefData[editingDate];
+  saveBenefData(benefData);
+  closeModal();
+  buildCalendar();
+  buildStockPage();
+  buildReport();
+  showSnackbar(`✅ ${editingDate} ${GU_MONTHS[currentMonth]}: ${val} લાભાર્થી`);
+}
+
+// ===================================================================
+// PAGE 3: REPORTS
+// ===================================================================
+function switchReport(type) {
+  currentReport = type;
+  document.getElementById('rptBtnMonthly').classList.toggle('active', type==='monthly');
+  document.getElementById('rptBtnDaily').classList.toggle('active', type==='daily');
+  const dailyPicker = document.getElementById('dailyDatePicker');
+  if (type === 'daily') {
+    dailyPicker.style.display = 'flex';
+    const t = new Date();
+    document.getElementById('dailyReportDate').value = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    buildDailyReport();
+  } else {
+    dailyPicker.style.display = 'none';
+    buildMonthlyReport();
+  }
+}
+
+function buildReport() {
+  if (currentReport === 'daily') buildDailyReport();
+  else buildMonthlyReport();
+}
+
+// -------------------------------------------------------------------
+// MONTHLY REPORT LOGIC (With Totals, Colors, Sticky, Correct Calculation)
+// -------------------------------------------------------------------
+function buildMonthlyReport() {
+  // Reload stock data to ensure latest Opening + Income is used
+  const stockData = getStockData();
+  const benefData = getBenefData();
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const monthName = GU_MONTHS[currentMonth] + ' ' + currentYear;
+
+  // Initialize Running Totals (Starting Stock = Opening Stock)
+  let runningTotals = { wheat:0, rice:0, oil:0, chana:0, dal:0, chanadal:0 };
+  ITEMS.forEach(i => runningTotals[i.key] = parseFloat(stockData[i.key+'_opening'] || 0) + parseFloat(stockData[i.key+'_income'] || 0));
+
+  // Initialize Column Sums for Grand Total Row
+  let colSums = {
+    benef: 0,
+    wheatM: 0, wheatA: 0, wheatT: 0,
+    riceM: 0, riceA: 0, riceT: 0,
+    oilM: 0, oilA: 0, oilT: 0,
+    chanaM: 0, chanaT: 0,
+    dalM: 0, dalT: 0,
+    chanadalM: 0, chanadalT: 0
+  };
+
+  let rows = '';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentYear, currentMonth, d);
+    const dow = date.getDay();
+    const isSun = dow === 0;
+    const benef = parseInt(benefData[d] || 0);
+    
+    if (isSun) {
+      rows += `<tr class="holiday-row">
+        <td>${d}</td><td>${GU_DAYS[dow]}</td><td>-</td>
+        <td colspan="20" style="text-align:left;padding-left:10px;color:#c62828;">🔴 રજા</td>
+      </tr>`;
+      continue;
+    }
+
+    // Calculate Day Consumption
+    let dayCons = { wheat:0, rice:0, oil:0, chana:0, dal:0, chanadal:0 };
+    let morningCons = { wheat:0, rice:0, oil:0, chana:0, dal:0, chanadal:0 };
+    let afternoonCons = { wheat:0, rice:0, oil:0, chana:0, dal:0, chanadal:0 };
+
+    if (benef > 0) {
+      colSums.benef += benef;
+      const rules = getDayRules(dow);
+      rules.forEach(r => {
+        const amountG = r.grams * benef;
+        dayCons[r.key] += amountG;
+        
+        // Logic: 30g items usually morning, 50g items usually afternoon
+        if (r.key === 'wheat') {
+          if (r.grams === 30) { morningCons.wheat += amountG; colSums.wheatM += amountG; }
+          if (r.grams === 50) { afternoonCons.wheat += amountG; colSums.wheatA += amountG; }
+        } else if (r.key === 'rice') {
+          if (r.grams === 30) { morningCons.rice += amountG; colSums.riceM += amountG; }
+          if (r.grams === 50) { afternoonCons.rice += amountG; colSums.riceA += amountG; }
+        } else if (r.key === 'oil') {
+          if (r.grams === 5) { morningCons.oil += amountG; colSums.oilM += amountG; }
+          if (r.grams === 8) { afternoonCons.oil += amountG; colSums.oilA += amountG; }
+        } else {
+          morningCons[r.key] += amountG;
+          colSums[r.key+'M'] += amountG;
+        }
+      });
+    }
+
+    // Add totals for items with only one slot (Chana, Dal, Chanadal)
+    colSums.wheatT += dayCons.wheat;
+    colSums.riceT += dayCons.rice;
+    colSums.oilT += dayCons.oil;
+    colSums.chanaT += dayCons.chana;
+    colSums.dalT += dayCons.dal;
+    colSums.chanadalT += dayCons.chanadal;
+
+    // Calculate & Update Running Closing Stock
+    let closingStocks = {};
+    ITEMS.forEach(i => {
+      runningTotals[i.key] -= (dayCons[i.key] / 1000); // Subtract consumption (converted to kg)
+      closingStocks[i.key] = Math.max(0, runningTotals[i.key]);
+    });
+
+    const fmt = (val) => val > 0 ? (val/1000).toFixed(3) : '-';
+
+    rows += `<tr>
+      <td style="font-weight:700;">${d}</td>
+      <td style="font-weight:600;${dow===6?'color:#5c6bc0':''}">${GU_DAYS[dow]}</td>
+      <td>${benef || '-'}</td>
+      
+      <!-- WHEAT -->
+      <td class="col-wheat">${fmt(morningCons.wheat)}</td>
+      <td class="col-wheat">${fmt(afternoonCons.wheat)}</td>
+      <td class="col-wheat">${fmt(dayCons.wheat)}</td>
+      <td class="col-wheat" style="color:#1a237e;font-weight:700;">${closingStocks.wheat.toFixed(3)}</td>
+
+      <!-- RICE -->
+      <td class="col-rice">${fmt(morningCons.rice)}</td>
+      <td class="col-rice">${fmt(afternoonCons.rice)}</td>
+      <td class="col-rice">${fmt(dayCons.rice)}</td>
+      <td class="col-rice" style="color:#0288d1;font-weight:700;">${closingStocks.rice.toFixed(3)}</td>
+
+      <!-- OIL -->
+      <td class="col-oil">${fmt(morningCons.oil)}</td>
+      <td class="col-oil">${fmt(afternoonCons.oil)}</td>
+      <td class="col-oil">${fmt(dayCons.oil)}</td>
+      <td class="col-oil" style="color:#7b1fa2;font-weight:700;">${closingStocks.oil.toFixed(3)}</td>
+
+      <!-- CHANA -->
+      <td class="col-chana">${fmt(morningCons.chana)}</td>
+      <td class="col-chana">${fmt(dayCons.chana)}</td>
+      <td class="col-chana" style="color:#558b2f;font-weight:700;">${closingStocks.chana.toFixed(3)}</td>
+
+      <!-- DAL -->
+      <td class="col-dal">${fmt(morningCons.dal)}</td>
+      <td class="col-dal">${fmt(dayCons.dal)}</td>
+      <td class="col-dal" style="color:#c62828;font-weight:700;">${closingStocks.dal.toFixed(3)}</td>
+
+      <!-- CHANADAL -->
+      <td class="col-chanadal">${fmt(morningCons.chanadal)}</td>
+      <td class="col-chanadal">${fmt(dayCons.chanadal)}</td>
+      <td class="col-chanadal" style="color:#00695c;font-weight:700;">${closingStocks.chanadal.toFixed(3)}</td>
+    </tr>`;
+  }
+
+  // --- GRAND TOTAL ROW ---
+  const fmtKg = (val) => (val/1000).toFixed(3);
+  
+  rows += `<tr class="total-row">
+    <td colspan="2">મહિનાનો કુલ ટોટલ</td>
+    <td>${colSums.benef}</td>
+    
+    <!-- Wheat -->
+    <td>${fmtKg(colSums.wheatM)}</td>
+    <td>${fmtKg(colSums.wheatA)}</td>
+    <td>${fmtKg(colSums.wheatT)}</td>
+    <td>${(runningTotals.wheat).toFixed(3)}</td>
+
+    <!-- Rice -->
+    <td>${fmtKg(colSums.riceM)}</td>
+    <td>${fmtKg(colSums.riceA)}</td>
+    <td>${fmtKg(colSums.riceT)}</td>
+    <td>${(runningTotals.rice).toFixed(3)}</td>
+
+    <!-- Oil -->
+    <td>${fmtKg(colSums.oilM)}</td>
+    <td>${fmtKg(colSums.oilA)}</td>
+    <td>${fmtKg(colSums.oilT)}</td>
+    <td>${(runningTotals.oil).toFixed(3)}</td>
+
+    <!-- Chana -->
+    <td>${fmtKg(colSums.chanaM)}</td>
+    <td>${fmtKg(colSums.chanaT)}</td>
+    <td>${(runningTotals.chana).toFixed(3)}</td>
+
+    <!-- Dal -->
+    <td>${fmtKg(colSums.dalM)}</td>
+    <td>${fmtKg(colSums.dalT)}</td>
+    <td>${(runningTotals.dal).toFixed(3)}</td>
+
+    <!-- Chanadal -->
+    <td>${fmtKg(colSums.chanadalM)}</td>
+    <td>${fmtKg(colSums.chanadalT)}</td>
+    <td>${(runningTotals.chanadal).toFixed(3)}</td>
+  </tr>`;
+
+  // --- SUMMARY CARDS ---
+  const consumed = calcMonthlyConsumption();
+  let summaryHtml = '<div class="summary-stats">';
+  const createSummaryCard = (item, colorClass, icon) => {
+    const opening = parseFloat(stockData[item.key+'_opening'] || 0);
+    const income = parseFloat(stockData[item.key+'_income'] || 0);
+    const cons = consumed[item.key];
+    const closing = Math.max(0, opening + income - cons);
+    let mTotal = 0, aTotal = 0;
+    if(item.key === 'wheat') { mTotal = consumed.wheat30g; aTotal = consumed.wheat50g; }
+    if(item.key === 'rice') { mTotal = consumed.rice30g; aTotal = consumed.rice50g; }
+    if(item.key === 'oil') { mTotal = consumed.oil5g; aTotal = consumed.oil8g; }
+    
+    return `
+    <div class="stat-card ${colorClass}">
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:5px;">
+        <span style="font-size:18px;">${icon}</span>
+        <strong>${item.name}</strong>
+      </div>
+      <div style="font-size:10px;color:#555;text-align:left;margin-bottom:4px;">કુલ લાભાર્થી: <span style="font-weight:700;color:#000;">${getTotalBeneficiaries()}</span></div>
+      <div style="font-size:10px;color:#555;text-align:left;">સવાર/બપોર (kg):</div>
+      <div style="font-size:11px;font-weight:700;">${mTotal.toFixed(2)} / ${aTotal.toFixed(2)}</div>
+      <div style="font-size:10px;color:#555;text-align:left;margin-top:4px;">કુલ વપરાશ:</div>
+      <div style="font-size:14px;font-weight:800;color:${item.color};">${cons.toFixed(3)} kg</div>
+      <div style="font-size:10px;color:#555;text-align:left;margin-top:4px;">બંધ સિલક:</div>
+      <div style="font-size:13px;font-weight:800;">${closing.toFixed(3)} kg</div>
+    </div>`;
+  };
+
+  summaryHtml += createSummaryCard(ITEMS[0], 'orange', '🌾'); 
+  summaryHtml += createSummaryCard(ITEMS[1], 'blue', '🍚');   
+  summaryHtml += createSummaryCard(ITEMS[2], 'red', '🫙');     
+  summaryHtml += createSummaryCard(ITEMS[3], 'green', '🫘');  
+  summaryHtml += createSummaryCard(ITEMS[4], 'red', '🫛');    
+  summaryHtml += createSummaryCard(ITEMS[5], 'green', '🌿');  
+  summaryHtml += '</div>';
+
+  // --- ASSEMBLE HTML ---
+  const html = `
+    ${summaryHtml}
+
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-card-title">📅 ${monthName} - માસિક રિપોર્ટ</div>
+      </div>
+      <div class="report-table-wrapper">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th rowspan="2">તારીખ</th>
+              <th rowspan="2">વાર</th>
+              <th rowspan="2">લાભાર્થી</th>
+              <th colspan="4" style="background:var(--bg-wheat);">🌾 ઘઉં</th>
+              <th colspan="4" style="background:var(--bg-rice);">🍚 ચોખા</th>
+              <th colspan="4" style="background:var(--bg-oil);">🫙 તેલ</th>
+              <th colspan="3" style="background:var(--bg-chana);">🫘 ચણા</th>
+              <th colspan="3" style="background:var(--bg-dal);">🫛 દાળ</th>
+              <th colspan="3" style="background:var(--bg-chanadal);">🌿 ચણાદાળ</th>
+            </tr>
+            <tr>
+              <th>સવાર</th><th>બપોર</th><th>કુલ</th><th>બાકી</th>
+              <th>સવાર</th><th>બપોર</th><th>કુલ</th><th>બાકી</th>
+              <th>સવાર</th><th>બપોર</th><th>કુલ</th><th>બાકી</th>
+              <th>સવાર</th><th>કુલ</th><th>બાકી</th>
+              <th>સવાર</th><th>કુલ</th><th>બાકી</th>
+              <th>સવાર</th><th>કુલ</th><th>બાકી</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+// ... (Keeping Daily Report and other utility functions same as previous version for brevity, 
+// but assuming they are present in full file) ...
+
+function buildDailyReport() {
+  const dateVal = document.getElementById('dailyReportDate').value;
+  if (!dateVal) return;
+  const selDate = new Date(dateVal);
+  const day = selDate.getDate();
+  const month = selDate.getMonth();
+  const year = selDate.getFullYear();
+  const dow = selDate.getDay();
+  const tmpMonth = currentMonth, tmpYear = currentYear;
+  currentMonth = month; currentYear = year;
+  const benefData = getBenefData();
+  const benef = parseInt(benefData[day] || 0);
+  const stockData = getStockData();
+  const isSunday = dow === 0;
+  const dateLabel = `${day} ${GU_MONTHS[month]} ${year} (${GU_DAYS[dow]})`;
+  let content = '';
+  if (isSunday) {
+    content = `<div class="report-card"><div class="report-card-header" style="background:linear-gradient(135deg,#c62828,#b71c1c);"><div class="report-card-title">🔴 ${dateLabel} - રજા</div></div><div style="padding:30px;text-align:center;color:#c62828;"><div style="font-size:48px;">🔴</div><div style="font-size:18px;font-weight:700;margin-top:10px;">આ દિવસ રજા છે</div><div style="font-size:13px;color:#999;margin-top:6px;">રવિવારે કોઈ વપરાશ નથી</div></div></div>`;
+  } else {
+    const rules = getDayRules(dow);
+    let w30=0,w50=0,r30=0,r50=0,oil5t=0,oil8t=0,chana=0,dal=0,chanadal=0;
+    if (benef > 0) {
+      rules.forEach(r => {
+        if (r.key==='wheat'&&r.grams===30) w30=r.grams*benef;
+        if (r.key==='wheat'&&r.grams===50) w50=r.grams*benef;
+        if (r.key==='rice'&&r.grams===30) r30=r.grams*benef;
+        if (r.key==='rice'&&r.grams===50) r50=r.grams*benef;
+        if (r.key==='oil'&&r.grams===5) oil5t=r.grams*benef;
+        if (r.key==='oil'&&r.grams===8) oil8t=r.grams*benef;
+        if (r.key==='chana') chana=r.grams*benef;
+        if (r.key==='dal') dal=r.grams*benef;
+        if (r.key==='chanadal') chanadal=r.grams*benef;
+      });
+    }
+    const formatG = g => g>0 ? `${(g/1000).toFixed(3)} kg (${g}g)` : '-';
+    content = `<div class="report-card"><div class="report-card-header"><div class="report-card-title">📆 ${dateLabel}</div><div style="font-size:13px;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;">👥 ${benef} વ્ય.</div></div><div style="padding:16px;"><div style="display:grid;gap:10px;"><div style="background:#fff8e1;border-radius:10px;overflow:hidden;"><div style="background:#f57c00;color:white;padding:8px 14px;font-weight:700;font-size:13px;">🌾 ઘઉં (Wheat)</div>${w30>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #ffe0b2;"><span style="font-size:12px;color:#555;">30 ગ્રામ/વ્ય.</span><strong style="color:#e65100;">${formatG(w30)}</strong></div>`:''}${w50>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #ffe0b2;"><span style="font-size:12px;color:#555;">50 ગ્રામ/વ્ય.</span><strong style="color:#e65100;">${formatG(w50)}</strong></div>`:''}${w30===0&&w50===0?`<div style="padding:8px 14px;color:#999;font-size:12px;">- આ દિવસ ઘઉં નથી -</div>`:''}${w30>0||w50>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;background:#fff3e0;"><span style="font-weight:700;font-size:13px;">⚡ ઘઉં કુલ</span><strong style="color:#f57c00;font-size:15px;">${((w30+w50)/1000).toFixed(3)} kg</strong></div>`:''}</div><div style="background:#e1f5fe;border-radius:10px;overflow:hidden;"><div style="background:#0288d1;color:white;padding:8px 14px;font-weight:700;font-size:13px;">🍚 ચોખા (Rice)</div>${r30>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #b3e5fc;"><span style="font-size:12px;color:#555;">30 ગ્રામ/વ્ય.</span><strong style="color:#0288d1;">${formatG(r30)}</strong></div>`:''}${r50>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #b3e5fc;"><span style="font-size:12px;color:#555;">50 ગ્રામ/વ્ય.</span><strong style="color:#0288d1;">${formatG(r50)}</strong></div>`:''}${r30===0&&r50===0?`<div style="padding:8px 14px;color:#999;font-size:12px;">- આ દિવસ ચોખા નથી -</div>`:''}${r30>0||r50>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;background:#e1f5fe;"><span style="font-weight:700;font-size:13px;">⚡ ચોખા કુલ</span><strong style="color:#0288d1;font-size:15px;">${((r30+r50)/1000).toFixed(3)} kg</strong></div>`:''}</div><div style="background:#f3e5f5;border-radius:10px;overflow:hidden;"><div style="background:#7b1fa2;color:white;padding:8px 14px;font-weight:700;font-size:13px;">🫙 તેલ (Oil)</div><div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e1bee7;"><span style="font-size:12px;color:#555;">5 ગ્રામ/વ્ય.</span><strong style="color:#7b1fa2;">${formatG(oil5t)}</strong></div><div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e1bee7;"><span style="font-size:12px;color:#555;">8 ગ્રામ/વ્ય.</span><strong style="color:#7b1fa2;">${formatG(oil8t)}</strong></div><div style="display:flex;justify-content:space-between;padding:8px 14px;background:#ede7f6;"><span style="font-weight:700;font-size:13px;">⚡ તેલ કુલ</span><strong style="color:#7b1fa2;font-size:15px;">${((oil5t+oil8t)/1000).toFixed(3)} kg</strong></div></div><div style="background:#f5f5f5;border-radius:10px;overflow:hidden;"><div style="background:#37474f;color:white;padding:8px 14px;font-weight:700;font-size:13px;">🫘🫛🌿 અન્ય</div>${chana>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e0e0e0;"><span>🫘 ચણા 20g/વ્ય.</span><strong style="color:#558b2f;">${formatG(chana)}</strong></div>`:'<div style="display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px solid #f0f0f0;color:#bbb;font-size:12px;"><span>🫘 ચણા</span><span>-</span></div>'}${dal>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e0e0e0;"><span>🫛 દાળ 20g/વ્ય.</span><strong style="color:#c62828;">${formatG(dal)}</strong></div>`:'<div style="display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px solid #f0f0f0;color:#bbb;font-size:12px;"><span>🫛 દાળ</span><span>-</span></div>'}${chanadal>0?`<div style="display:flex;justify-content:space-between;padding:8px 14px;"><span>🌿 ચણાદાળ 20g/વ્ય.</span><strong style="color:#00695c;">${formatG(chanadal)}</strong></div>`:'<div style="display:flex;justify-content:space-between;padding:6px 14px;color:#bbb;font-size:12px;"><span>🌿 ચણાદાળ</span><span>-</span></div>'}</div></div></div><div style="padding:14px 16px;background:linear-gradient(135deg,#1a237e,#3949ab);color:white;border-radius:0 0 12px 12px;"><div style="font-size:14px;font-weight:700;margin-bottom:10px;opacity:0.9;">📊 ${dateLabel} - કુલ વપરાશ</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;"><div style="background:rgba(255,255,255,0.15);padding:8px 4px;border-radius:8px;"><div style="font-size:10px;opacity:0.8;">🌾 ઘઉં</div><div style="font-weight:800;font-size:15px;">${((w30+w50)/1000).toFixed(3)}<small>kg</small></div></div><div style="background:rgba(255,255,255,0.15);padding:8px 4px;border-radius:8px;"><div style="font-size:10px;opacity:0.8;">🍚 ચોખા</div><div style="font-weight:800;font-size:15px;">${((r30+r50)/1000).toFixed(3)}<small>kg</small></div></div><div style="background:rgba(255,255,255,0.15);padding:8px 4px;border-radius:8px;"><div style="font-size:10px;opacity:0.8;">🫙 તેલ</div><div style="font-weight:800;font-size:15px;">${((oil5t+oil8t)/1000).toFixed(3)}<small>kg</small></div></div></div></div></div>`;
+  }
+  currentMonth = tmpMonth; currentYear = tmpYear;
+  document.getElementById('reportContent').innerHTML = content;
+}
+
+// ===================================================================
+// PRINT & SHARE
+// ===================================================================
+function printReport() {
+  const content = document.getElementById('reportContent').innerHTML;
+  const monthName = GU_MONTHS[currentMonth] + ' ' + currentYear;
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`<html><head><meta charset="UTF-8"><title>My Daily Report - ${monthName}</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body { font-family: 'Noto Sans Gujarati', sans-serif; padding: 10px; color: #1a237e; font-size: 11px; } .print-header { text-align: center; padding: 10px; border-bottom: 2px solid #1a237e; margin-bottom: 15px; } .print-header h1 { font-size: 18px; font-weight: 800; color: #1a237e; margin: 0; } .print-header p { font-size: 12px; color: #555; margin: 4px 0 0; } .report-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; break-inside: avoid; } .report-card-header { padding: 8px 12px; background: #1a237e; color: white; } .report-card-title { font-size: 13px; font-weight: 700; } .report-table { width: 100%; border-collapse: collapse; font-size: 9px; } .report-table th { padding: 4px 2px; background: #e8eaf6; color: #1a237e; font-weight: 700; text-align: center; border-bottom: 1px solid #ccc; } .report-table td { padding: 3px 2px; border-bottom: 1px solid #eee; text-align: center; } .report-table tr:nth-child(even) td { background: #fafbff; } .total-row td { background: #fff3e0 !important; font-weight: 800; color: #e65100; border-top: 2px solid #ffb74d; } .holiday-row td { color: #c62828; background: #ffebee !important; } .summary-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; } .stat-card { border: 1px solid #ddd; border-radius: 6px; padding: 8px; text-align: center; break-inside: avoid; } .stat-value { font-size: 14px; font-weight: 800; } .stat-label { font-size: 9px; color: #777; } .print-footer { text-align: center; font-size: 10px; color: #777; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 8px; }</style></head><body><div class="print-header"><h1>📊 My Daily Report - ખાદ્ય સ્ટોક</h1><p>${currentReport === 'monthly' ? 'માસિક રિપોર્ટ - ' + monthName : 'દૈનિક રિપોર્ટ'} | ${new Date().toLocaleDateString('gu-IN')}</p></div>${content}<div class="print-footer">Developed by Devendra Ramanuj | 📞 9276505035, 9274505035 | ✉️ devenramanuj@outlook.com</div></body></html>`);
+  printWin.document.close();
+  printWin.focus();
+  setTimeout(() => printWin.print(), 500);
+}
+
+function openPreview() {
+  const content = document.getElementById('reportContent').innerHTML;
+  document.getElementById('previewBody').innerHTML = content;
+  document.getElementById('previewModal').classList.add('show');
+}
+function closePreview() { document.getElementById('previewModal').classList.remove('show'); }
+function shareReport() {
+  const monthName = GU_MONTHS[currentMonth] + ' ' + currentYear;
+  const consumed = calcMonthlyConsumption();
+  const totalBenef = getTotalBeneficiaries();
+  const text = `📊 My Daily Report - ${monthName}\n📅 ${new Date().toLocaleDateString('gu-IN')}\n\n👥 કુલ લાભાર્થી: ${totalBenef}\n\n📦 જથ્થો વિગત (kg):\n🌾 ઘઉં: ${consumed.wheat.toFixed(3)} kg\n🍚 ચોખા: ${consumed.rice.toFixed(3)} kg\n🫙 તેલ: ${consumed.oil.toFixed(3)} kg\n🫘 ચણા: ${consumed.chana.toFixed(3)} kg\n🫛 દાળ: ${consumed.dal.toFixed(3)} kg\n🌿 ચણાદાળ: ${consumed.chanadal.toFixed(3)} kg\n\nDeveloped by Devendra Ramanuj\n📞 9276505035 | ✉️ devenramanuj@outlook.com`;
+  if (navigator.share) { navigator.share({ title: `My Daily Report - ${monthName}`, text }); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showSnackbar('✅ ક્લિપ્બોર્ડ પર Copy!')); }
+  else { showSnackbar('⚠️ Share supported નથી. Copy text manually.'); }
+}
+
+// ===================================================================
+// TAB NAVIGATION
+// ===================================================================
+function switchTab(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  const tabMap = { page1:'tab1', page2:'tab2', page3:'tab3' };
+  document.getElementById(tabMap[pageId]).classList.add('active');
+  if (pageId === 'page3') buildReport();
+}
+
+// ===================================================================
+// SNACKBAR
+// ===================================================================
+function showSnackbar(msg) {
+  const s = document.getElementById('snackbar');
+  s.textContent = msg;
+  s.classList.add('show');
+  setTimeout(() => s.classList.remove('show'), 3000);
+}
+
+// ===================================================================
+// DATE & TIME
+// ===================================================================
+function updateHeaderDate() {
+  const now = new Date();
+  const days = ['રવિવાર','સોમવાર','મંગળવાર','બુધવાર','ગુરુવાર','શુક્રવાર','શનિવાર'];
+  document.getElementById('todayDate').textContent = `${now.getDate()} ${GU_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('todayDay').textContent = days[now.getDay()];
+}
+
+// ===================================================================
+// INIT
+// ===================================================================
+function init() {
+  initAuth();
+  const now = new Date();
+  currentMonth = now.getMonth();
+  currentYear = now.getFullYear();
+  updateHeaderDate();
+  setInterval(updateHeaderDate, 60000);
+  const dateInput = document.getElementById('dailyReportDate');
+  if (dateInput) { dateInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; }
+  buildStockPage();
+  buildCalendar();
+  buildMonthlyReport();
+}
+
+document.getElementById('benefModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('benefInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') saveBeneficiary();
+});
+init();
+</script>
 </body>
 </html>
